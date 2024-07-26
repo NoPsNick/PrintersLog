@@ -3,19 +3,19 @@
 import calendar
 import datetime
 import re
+
 from dateutil.rrule import rrule, MONTHLY
 from kivy.app import App
 from kivy.metrics import dp
 from kivy.properties import ObjectProperty, StringProperty, BooleanProperty, NumericProperty, ColorProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
-from kivy.uix.label import Label
 from kivy.uix.screenmanager import Screen
 
+from backup import Backup
 # Importando módulos customizados
 from configuration import Config
 from leitura import Leitura
-from backup import Backup
 from models import Dados
 from navigation_screen_manager import NavigationScreenManager
 from storage_manager import StorageManager
@@ -314,6 +314,10 @@ class ResultScreen(Screen):
 
 
 class MyScreenManager(NavigationScreenManager):
+    pass
+
+
+class MainMenu(Screen):
     pass
 
 
