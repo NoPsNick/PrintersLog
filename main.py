@@ -3,17 +3,20 @@
 import calendar
 import datetime
 import re
+from functools import partial
 
 from dateutil.rrule import rrule, MONTHLY
 from kivy.app import App
+from kivy.graphics import Color, Line
 from kivy.metrics import dp
 from kivy.properties import ObjectProperty, StringProperty, BooleanProperty, NumericProperty, ColorProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
+from kivy.uix.label import Label
 from kivy.uix.screenmanager import Screen
 
-from backup import Backup
 # Importando módulos customizados
+from backup import Backup
 from configuration import Config
 from leitura import Leitura
 from models import Dados
@@ -38,11 +41,154 @@ class ResultWidget(BoxLayout):
 
 
 class ConfigScreen(Screen):
-    pass
+    def __init__(self, **kw):
+        super().__init__(**kw)
+        self.configs = None
+        self.dicionario = {}
+        self.config = None
+        self.db_types = {'TestDB': 'test_db',
+                         'Desativado': 'disabled'}
+
+    def on_pre_enter(self, *args):
+        self.config = Config()
+        self.configs = self.config.get_configs()
+        if self.configs['_tipo_de_db'] == 'test_db':
+            self.ids.db_testdb.state = 'down'
+            self.ids.db_disabled.state = 'normal'
+        else:
+            self.ids.db_testdb.state = 'normal'
+            self.ids.db_disabled.state = 'down'
+        self.ids.printer_path_input.text = self.configs['_printers_path']
+        self.ids.year.text = str(self.configs['_default_year'])
+        self.ids.month.text = str(self.configs['_default_months_list_to_show']).replace("[", "").replace("]", "")
+        self.ids.chave.text, self.ids.valor.text = '', ''
+        self.dicionario = {}
+
+    def save_db_type(self):
+        if self.ids.db_testdb.state == 'down':
+            db_type = self.db_types['TestDB']
+        elif self.ids.db_disabled.state == 'down':
+            db_type = self.db_types['Desativado']
+        else:
+            db_type = self.db_types['Desativado']
+        self.config._tipo_de_db = db_type
+        self.config.save_config()
+
+    def save_printers_path(self):
+        printer_path = self.ids.printer_path_input.text
+        self.config._printers_path = printer_path
+        self.config.save_config()
+
+    def add_translation(self):
+        chave = self.ids.chave.text.strip()
+        valor = self.ids.valor.text.strip()
+
+        # Verifica se ambos chave e valor são não vazios
+        if chave and valor:
+            # Atualiza o dicionário, garantindo que a chave esteja em minúsculas e o valor em título
+            self.dicionario[chave.lower()] = valor.title()
+        self.ids.chave.text, self.ids.valor.text = '', ''
+
+    def save_additions_on_translate(self):
+        dicionario = self.configs['_traduzir']
+        for key, value in self.dicionario.items():
+            dicionario[key] = value
+        self.config._traduzir = dicionario
+        self.config.save_config()
+
+    def save_month_year(self):
+        month = self.ids.month.text.replace(" ", "") or "1-12"
+        todos = re.split(r',', month)
+
+        pegar_meses = [re.findall(r'\b\d+\b', cada) for cada in todos]
+        meses_set, to_show = set(), []
+
+        for lis in pegar_meses:
+            if len(lis) == 2:
+                str_dt = datetime.date(int(self.str_year), int(lis[0]), 1)
+                end_dt = datetime.date(int(self.end_year), int(lis[1]), 1)
+                lista = [dt.month for dt in rrule(MONTHLY, dtstart=str_dt, until=end_dt)]
+                meses_set.update(lista)
+                to_show.extend(lista)
+            elif len(lis) == 1:
+                meses_set.add(int(lis[0]))
+                to_show.append(int(lis[0]))
+
+        meses_ordenados = sorted(meses_set)
+        months_list = [calendar.month_name[numero] for numero in meses_ordenados]
+        months_list_to_show = [int(month) for month in (map(str, meses_ordenados))]
+        months = ", ".join(months_list)
+        self.config._default_months = months
+        self.config._default_months_list = months_list
+        self.config._default_months_list_to_show = months_list_to_show
+
+        texto = self.ids.year.text.replace(" ", "")
+        anos = re.split(",", texto)
+        pegar_anos = [re.findall(r'\b\d+\b', cada) for cada in anos]
+
+        anos_set, novo = set(), []
+
+        for lis in pegar_anos:
+            if len(lis) == 2:
+                intervalo_anos = range(int(lis[0]), int(lis[1]) + 1)
+                anos_set.update(intervalo_anos)
+                novo.extend(intervalo_anos)
+            elif len(lis) == 1:
+                ano = int(lis[0])
+                anos_set.add(ano)
+                novo.append(ano)
+
+        anos_ordenados = sorted(anos_set)
+        years_to_show = ", ".join(map(str, anos_ordenados))
+        years_list = [[ano] for ano in anos_ordenados]
+        self.config._default_year = years_to_show
+        self.config._default_years_list = years_list
+        self.config.save_config()
 
 
 class ListScreen(Screen):
-    pass
+    def __init__(self, **kw):
+        super().__init__(**kw)
+        self.lista = None
+        self.config = None
+
+    def on_pre_enter(self, *args):
+        self.config = Config()
+        self.lista = self.config.get_configs().get("_traduzir")
+        self.update_list()
+
+    def button_delete(self, key, *args):
+        dicionario = self.lista
+        if key in dicionario:
+            del dicionario[key]
+        self.update_list()
+
+    def on_button_save(self):
+        self.config._traduzir = self.lista
+        self.config.save_config()
+
+    def update_list(self):
+        grid = self.ids.list_grid
+        grid.clear_widgets()
+        for key, value in self.lista.items():
+            item_box = BorderedBoxLayout(size_hint_y=None, height=40)
+            label = Label(text=f'{key.title()} traduzido para {value.title()}', size_hint_x=0.8)
+            button = Button(text='Remover', size_hint_x=0.2, on_press=partial(self.button_delete, key))
+            item_box.add_widget(label)
+            item_box.add_widget(button)
+            grid.add_widget(item_box)
+
+
+class BorderedBoxLayout(BoxLayout):
+    def __init__(self, **kwargs):
+        super(BorderedBoxLayout, self).__init__(**kwargs)
+        with self.canvas.before:
+            Color(1, 1, 1, 1)  # Cor branca para o fundo
+            self.line = Line(rectangle=(self.x, self.y, self.width, self.height), width=1.5)
+        self.bind(pos=self.update_border, size=self.update_border)
+
+    def update_border(self, *args):
+        self.line.rectangle = (self.x, self.y, self.width, self.height)
 
 
 # Widget para exibir resultados totais
@@ -165,6 +311,8 @@ class SavedScreen(Screen):
             db = TestDB('documentos.db')
             dados = db.buscar_documentos()
             db.fechar_conexao()
+        else:
+            return None
         show, anos_verify = [], []
 
         # Verifica se há um 0 em years_list, se sim, pega todos os anos
@@ -231,7 +379,10 @@ class SavedScreen(Screen):
 
     def _translate(self, data):
         """Traduz a data para o formato adequado."""
-        return re.sub('|'.join(self._traduzir.keys()), lambda x: self._traduzir[x.group()], data)
+        return re.sub('|'.join(self._traduzir.keys()),
+                      lambda x: self._traduzir[x.group().lower()],
+                      data,
+                      flags=re.IGNORECASE)
 
 
 class ResultScreen(Screen):
@@ -242,8 +393,8 @@ class ResultScreen(Screen):
     clicado = False
     msg_str = StringProperty("")
     msg_col = ColorProperty((1, 0, 0))
-    default_root = ".\\printers\\"
-    printers_root = StringProperty(".\\printers\\")
+    default_root = config.get('_printers_path')
+    printers_root = StringProperty(default_root)
     BL = BoxLayout(size_hint=(1, 0.1))
     backup_button_csv = Button(text="Criar CSVs", font_size=dp(12), size_hint=(1, 1))
     backup_button_json = Button(text="Salvar em JSON", font_size=dp(12), size_hint=(1, 1))

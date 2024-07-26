@@ -1,6 +1,6 @@
 # -*- coding: latin-1 -*-
-import json
 import datetime
+import json
 
 
 class Config:
@@ -16,6 +16,7 @@ class Config:
                 self._default_year = config.get('_default_year', datetime.date.today().year)
                 self._default_years_list = config.get('_default_years_list', [[self._default_year]])
                 self._tipo_de_db = config.get('_tipo_de_db', '')
+                self._printers_path = config.get('_printers_path', '')
         except FileNotFoundError:
             # Default values if config file does not exist
             self._traduzir = {
@@ -35,9 +36,11 @@ class Config:
             self._default_months = ', '.join(self._traduzir.values())
             self._default_months_list = list(self._traduzir.values())
             self._default_months_list_to_show = list(range(1, 13))
-            self._default_year = datetime.date.today().year
-            self._default_years_list = [[self._default_year]]
+            self._default_year = str(datetime.date.today().year)
+            self._default_years_list = [[int(self._default_year)]]
             self._tipo_de_db = "test_db"
+            self._printers_path = ".\\printers\\"
+            self.save_config()
 
     def save_config(self):
         config = {
@@ -47,7 +50,8 @@ class Config:
             '_default_months_list_to_show': self._default_months_list_to_show,
             '_default_year': self._default_year,
             '_default_years_list': self._default_years_list,
-            '_tipo_de_db': self._tipo_de_db
+            '_tipo_de_db': self._tipo_de_db,
+            '_printers_path': self._printers_path
         }
         with open(self.json_file, 'w') as file:
             json.dump(config, file, indent=4)
@@ -67,7 +71,8 @@ class Config:
             "_default_months_list_to_show": self._default_months_list_to_show,
             "_default_year": self._default_year,
             "_default_years_list": self._default_years_list,
-            "_tipo_de_db": self._tipo_de_db
+            "_tipo_de_db": self._tipo_de_db,
+            '_printers_path': self._printers_path
         }
 
 
