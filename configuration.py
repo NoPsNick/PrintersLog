@@ -4,7 +4,7 @@ import json
 
 
 class Config:
-    def __init__(self, json_file='config.json'):
+    def __init__(self, json_file='./jsons/config.json'):
         self.json_file = json_file
         try:
             with open(self.json_file, 'r') as file:

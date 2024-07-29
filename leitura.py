@@ -1,9 +1,12 @@
-import os  # Importa a biblioteca os para interagir com o sistema operacional, como navegar em diretórios e manipular arquivos
+import \
+    os  # Importa a biblioteca os para interagir com o sistema operacional, como navegar em diretórios e manipular arquivos
 import re  # Importa a biblioteca re para utilizar expressões regulares para pesquisa e manipulação de strings
 
 from bs4 import BeautifulSoup  # Importa BeautifulSoup da biblioteca bs4 para analisar e manipular arquivos HTML
 
-from models import Dados  # Importa a classe Dados do módulo models, presumivelmente para armazenar dados extraídos de arquivos HTML
+from configuration import Config
+from models import \
+    Dados  # Importa a classe Dados do módulo models, presumivelmente para armazenar dados extraídos de arquivos HTML
 
 
 class Leitura:
@@ -11,7 +14,8 @@ class Leitura:
     Classe responsável por ler arquivos HTML de um diretório específico
     (por padrão, ".\\printers\\") e extrair informações, retornando-as como um dicionário.
     """
-    _default_root = ".\\printers\\"  # Define o diretório padrão para leitura dos arquivos HTML
+    config = Config().get_configs()
+    _default_root = config.get('_printers_path')  # Define o diretório padrão para leitura dos arquivos HTML
     _remover = ["\n", "<td>", "</td>", "<tr>", "</tr>",
                 "</span>", "<title>PaperCut Print Logger : Print Logs - ",
                 "</title>"]  # Lista de strings HTML e caracteres a serem removidos durante a leitura do arquivo

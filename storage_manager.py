@@ -21,4 +21,4 @@ class StorageManager:
 
     @staticmethod
     def get_filename(data_name):
-        return data_name + ".json"
+        return "./jsons/" + data_name + ".json"
