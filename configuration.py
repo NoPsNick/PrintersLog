@@ -1,6 +1,7 @@
 # -*- coding: latin-1 -*-
 import datetime
 import json
+import re
 
 
 class Config:
@@ -56,12 +57,12 @@ class Config:
         with open(self.json_file, 'w') as file:
             json.dump(config, file, indent=4)
 
-    def _translate(self, months) -> list:
-        meses_lista = [mes.strip().lower() for mes in months.split(",")]
-        return [self._traduzir.get(mes, 'Mês desconhecido') for mes in meses_lista]
-
-    def _get_show_list(self) -> list:
-        return [datetime.datetime.strptime(month, '%B').month for month in self._default_months_list]
+    def translate(self, data):
+        """Traduz a data para o formato adequado."""
+        return re.sub('|'.join(self._traduzir.keys()),
+                      lambda x: self._traduzir[x.group().lower()],
+                      data,
+                      flags=re.IGNORECASE)
 
     def get_configs(self) -> dict:
         return {

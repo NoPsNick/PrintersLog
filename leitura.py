@@ -14,13 +14,13 @@ class Leitura:
     Classe responsável por ler arquivos HTML de um diretório específico
     (por padrão, ".\\printers\\") e extrair informações, retornando-as como um dicionário.
     """
-    config = Config().get_configs()
-    _default_root = config.get('_printers_path')  # Define o diretório padrão para leitura dos arquivos HTML
     _remover = ["\n", "<td>", "</td>", "<tr>", "</tr>",
                 "</span>", "<title>PaperCut Print Logger : Print Logs - ",
                 "</title>"]  # Lista de strings HTML e caracteres a serem removidos durante a leitura do arquivo
 
-    def __init__(self, root: str = _default_root):
+    def __init__(self, root: str = None):
+        self.config = Config().get_configs()
+        self._default_root = root if root else self.config.get('_printers_path')
         self.root = root  # Inicializa a classe com o diretório especificado (ou o padrão)
 
     @staticmethod
@@ -37,14 +37,14 @@ class Leitura:
         if date_match:
             date = date_match.group(1)  # Se a data for encontrada, armazena-a na variável date
         else:
-            return None  # Se não for encontrada, retorna None
+            date = "1 janeiro 0001"
 
         rows = soup.select('table.results tr')  # Seleciona todas as linhas da tabela com a classe 'results'
         data_list = []  # Inicializa a lista para armazenar os dados extraídos
 
         for row in rows[1:]:  # Itera sobre as linhas da tabela, ignorando a primeira (cabeçalho)
             cells = row.find_all('td')  # Encontra todas as células (td) na linha
-            if len(cells) >= 9:  # Verifica se a linha tem pelo menos 9 células
+            if len(cells) == 9:  # Verifica se a linha tem pelo menos 9 células
                 time = cells[0].text.strip()  # Extrai e limpa o texto da primeira célula (hora)
                 user = cells[1].text.strip()  # Extrai e limpa o texto da segunda célula (usuário)
                 pages = cells[2].text.strip()  # Extrai e limpa o texto da terceira célula (páginas)
@@ -57,7 +57,8 @@ class Leitura:
 
                 # Adiciona os dados extraídos na lista como uma instância da classe Dados
                 data_list.append(
-                    Dados(os.path.basename(filepath), date, time, user, pages, copies, print_queue, document, station, duplex, grayscale))
+                    Dados(os.path.basename(filepath), date, time, user, pages, copies, print_queue,
+                          document, station, duplex, grayscale))
 
         return data_list  # Retorna a lista de dados extraídos
 

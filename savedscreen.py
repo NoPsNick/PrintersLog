@@ -19,7 +19,8 @@ Builder.load_file("savedscreen.kv", encoding='latin-1')
 
 class SavedScreen(Screen):
     """Tela que exibe os dados salvos e permite filtragem por mês e ano."""
-    configs = Config().get_configs()
+    config = Config()
+    configs = config.get_configs()
     # Obtendo configurações padrões
     (
         _traduzir,
@@ -52,7 +53,7 @@ class SavedScreen(Screen):
         "[", "").replace("]", ""))
     total = []
 
-    def on_pre_enter(self, *args):
+    def on_enter(self, *args):
         self.configs = Config().get_configs()
         (
             _traduzir,
@@ -140,7 +141,8 @@ class SavedScreen(Screen):
                 anos_verify.extend(self._filtrar_anos(dados, anos))
 
         for mes in self.months_list:
-            show.extend(dado for dado in anos_verify if self._verify_month(mes, self._translate(dado.get("data"))))
+            show.extend(
+                dado for dado in anos_verify if self._verify_month(mes, self.config.translate(dado.get("data"))))
 
         if show:
             self.dados = [Dados(**dado) for dado in show]
@@ -155,7 +157,6 @@ class SavedScreen(Screen):
 
     def on_button_click_db(self):
         """Manipula o clique do botão para filtrar e exibir dados do banco de dados."""
-        dados = []
         if self._tipo_de_db == "test_db":
             db = TestDB('./dbs/documentos.db')
             dados = db.buscar_documentos()
@@ -172,7 +173,8 @@ class SavedScreen(Screen):
                 anos_verify.extend(self._filtrar_anos(dados, anos))
 
         for mes in self.months_list:
-            show.extend(dado for dado in anos_verify if self._verify_month(mes, self._translate(dado.get("data"))))
+            show.extend(
+                dado for dado in anos_verify if self._verify_month(mes, self.config.translate(dado.get("data"))))
 
         if show:
             if self._tipo_de_db == "test_db":
@@ -192,12 +194,17 @@ class SavedScreen(Screen):
         self.show_data()
         self.show_total()
 
+    def on_button_relatorio(self):
+        """Manipula o clique do botão para fazer o relatório dos dados em PDF."""
+        if self.dados:
+            Backup(self.dados).to_pdf()
+
     def _filtrar_anos(self, dados, anos):
         """Filtra os dados por anos."""
         if len(anos) == 2:
-            return [dado for dado in dados if self._verify_between_years(anos, self._translate(dado.get("data")))]
+            return [dado for dado in dados if self._verify_between_years(anos, self.config.translate(dado.get("data")))]
         elif len(anos) == 1:
-            return [dado for dado in dados if self._verify_year(anos, self._translate(dado.get("data")))]
+            return [dado for dado in dados if self._verify_year(anos, self.config.translate(dado.get("data")))]
         return []
 
     def show_data(self):
@@ -225,10 +232,3 @@ class SavedScreen(Screen):
         """Verifica se o ano corresponde ao dado."""
         ano_pego = datetime.datetime.strptime(ano, '%d %B %Y').date().year
         return ano_pego == anos[0]
-
-    def _translate(self, data):
-        """Traduz a data para o formato adequado."""
-        return re.sub('|'.join(self._traduzir.keys()),
-                      lambda x: self._traduzir[x.group().lower()],
-                      data,
-                      flags=re.IGNORECASE)

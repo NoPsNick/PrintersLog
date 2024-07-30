@@ -95,9 +95,12 @@
                             text: "Pesquisar pelo Banco de Dados"
                             height: dp(40)
                             on_press: root.on_button_click_db()
+                        Button:
+                            text: "Filtro"
+                            height: dp(40)
             BoxLayout:
                 orientation: "horizontal"
-                size_hint_y: 0.7  # Ajuste o tamanho para que não ocupe muito espaço
+                size_hint_y: 0.65  # Ajuste o tamanho para que não ocupe muito espaço
                 BoxLayout:
                     orientation: "vertical"
                     TitleLabel:
@@ -130,3 +133,8 @@
                                 height: dp(self.minimum_height)
                                 orientation: 'vertical'
                                 spacing: dp(5)
+        BoxLayout:
+            size_hint_y: 0.05
+            Button:
+                text: "Criar Relatório em PDF"
+                on_press: root.on_button_relatorio()

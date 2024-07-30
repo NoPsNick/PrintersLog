@@ -55,22 +55,22 @@ class TestDB:
             arquivos.append(Dados(*arquivo).get_dictionary())
         return arquivos
 
-    def buscar_documento_por_arquivo(self, arquivo):
-        self.cursor.execute("SELECT * FROM Documentos WHERE Arquivo=?", (arquivo,))
-        return self.cursor.fetchone()
-
-    def atualizar_documento(self, arquivo, novos_dados):
-        self.cursor.execute("""
-            UPDATE Documentos
-            SET Principal=?, Data=?, Hora=?, User=?, Paginas=?, Copias=?,
-                Impressora=?, Arquivo=?, Est=?, Duplex=?, Escala_de_cinza=?
-            WHERE Arquivo=?
-        """, (*novos_dados, arquivo))
-        self.conn.commit()
-
-    def deletar_documento(self, arquivo):
-        self.cursor.execute("DELETE FROM Documentos WHERE Arquivo=?", (arquivo,))
-        self.conn.commit()
+    # def buscar_documento_por_arquivo(self, arquivo):
+    #     self.cursor.execute("SELECT * FROM Documentos WHERE Arquivo=?", (arquivo,))
+    #     return self.cursor.fetchone()
+    #
+    # def atualizar_documento(self, arquivo, novos_dados):
+    #     self.cursor.execute("""
+    #         UPDATE Documentos
+    #         SET Principal=?, Data=?, Hora=?, User=?, Paginas=?, Copias=?,
+    #             Impressora=?, Arquivo=?, Est=?, Duplex=?, Escala_de_cinza=?
+    #         WHERE Arquivo=?
+    #     """, (*novos_dados, arquivo))
+    #     self.conn.commit()
+    #
+    # def deletar_documento(self, arquivo):
+    #     self.cursor.execute("DELETE FROM Documentos WHERE Arquivo=?", (arquivo,))
+    #     self.conn.commit()
 
     def fechar_conexao(self):
         self.conn.close()

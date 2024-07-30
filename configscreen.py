@@ -22,6 +22,10 @@ class ConfigScreen(Screen):
                          'Desativado': 'disabled'}
 
     def on_pre_enter(self, *args):
+        self.get_configs()
+        self.dicionario = {}
+
+    def get_configs(self):
         self.config = Config()
         self.configs = self.config.get_configs()
         if self.configs['_tipo_de_db'] == 'test_db':
@@ -45,11 +49,13 @@ class ConfigScreen(Screen):
             db_type = self.db_types['Desativado']
         self.config._tipo_de_db = db_type
         self.config.save_config()
+        self.get_configs()
 
     def save_printers_path(self):
         printer_path = self.ids.printer_path_input.text
         self.config._printers_path = printer_path
         self.config.save_config()
+        self.get_configs()
 
     def add_translation(self):
         chave = self.ids.chave.text.strip()
@@ -60,6 +66,7 @@ class ConfigScreen(Screen):
             # Atualiza o dicionário, garantindo que a chave esteja em minúsculas e o valor em título
             self.dicionario[chave.lower()] = valor.title()
         self.ids.chave.text, self.ids.valor.text = '', ''
+        self.get_configs()
 
     def save_additions_on_translate(self):
         dicionario = self.configs['_traduzir']
@@ -67,6 +74,7 @@ class ConfigScreen(Screen):
             dicionario[key] = value
         self.config._traduzir = dicionario
         self.config.save_config()
+        self.get_configs()
 
     def save_month_year(self):
         # Meses
@@ -119,4 +127,4 @@ class ConfigScreen(Screen):
         self.config._default_year = years_to_show
         self.config._default_years_list = years_list
         self.config.save_config()
-        self.on_pre_enter()
+        self.get_configs()

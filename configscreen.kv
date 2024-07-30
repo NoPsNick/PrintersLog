@@ -9,7 +9,7 @@
 
             # Traduzir Section
             Label:
-                text: 'Traduzir (As traduções criadas são resetadasm em QUALQUER tipo de Salvamento)'
+                text: 'Traduzir (Não é recomendado alterar as traduções, pois alteram  o programa inteiro.)'
                 size_hint: 1, 0.1
 
             BoxLayout:
@@ -39,7 +39,7 @@
                     size_hint: 0.33, 1
                     on_press: root.save_additions_on_translate()
                 Button:
-                    text: 'Ver a lista para editar'
+                    text: 'Ver a Lista Para Editar'
                     size_hint: 0.33, 1
                     on_press: app.manager.push("ListScreen")
 

@@ -33,7 +33,7 @@ class ResultScreen(Screen):
     BL.add_widget(backup_button_csv)
     BL.add_widget(backup_button_bd)
 
-    def on_pre_enter(self, *args):
+    def on_enter(self, *args):
         self.msg_str = ""
         self.msg_col = (1, 0, 0)
         self.config = Config().get_configs()
