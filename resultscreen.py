@@ -17,27 +17,33 @@ Builder.load_file("resultscreen.kv", encoding='latin-1')
 
 class ResultScreen(Screen):
     """Tela que exibe os resultados processados."""
-    config = Config().get_configs()
     recycleView = ObjectProperty(None)
-    dados = None
-    clicado = False
     msg_str = StringProperty("")
     msg_col = ColorProperty((1, 0, 0))
-    default_root = config.get('_printers_path')
-    printers_root = StringProperty(default_root)
-    BL = BoxLayout(size_hint=(1, 0.1))
-    backup_button_csv = Button(text="Criar CSVs", font_size=dp(12), size_hint=(1, 1))
-    backup_button_json = Button(text="Salvar em JSON", font_size=dp(12), size_hint=(1, 1))
-    backup_button_bd = Button(text="Salvar no Banco de Dados", font_size=dp(11), size_hint=(1, 1))
-    BL.add_widget(backup_button_json)
-    BL.add_widget(backup_button_csv)
-    BL.add_widget(backup_button_bd)
+    printers_root = StringProperty()
+
+    def __init__(self, **kw):
+        super().__init__(**kw)
+        self.config = Config()
+        self.configs = self.config.get_configs()
+        self.dados = None
+        self.clicado = False
+        self.default_root = self.configs.get('_printers_path')
+        self.printers_root = self.default_root
+        self.BL = BoxLayout(size_hint=(1, 0.1))
+        self.backup_button_csv = Button(text="Criar CSVs", font_size=dp(12), size_hint=(1, 1))
+        self.backup_button_json = Button(text="Salvar em JSON", font_size=dp(12), size_hint=(1, 1))
+        self.backup_button_bd = Button(text="Salvar no Banco de Dados", font_size=dp(11), size_hint=(1, 1))
+        self.BL.add_widget(self.backup_button_json)
+        self.BL.add_widget(self.backup_button_csv)
+        self.BL.add_widget(self.backup_button_bd)
 
     def on_enter(self, *args):
         self.msg_str = ""
         self.msg_col = (1, 0, 0)
-        self.config = Config().get_configs()
-        self.default_root = self.config.get('_printers_path')
+        self.config.read_configs()
+        self.configs = self.config.get_configs()
+        self.default_root = self.configs.get('_printers_path')
         self.printers_root = self.default_root
 
     def msg_change(self, msg: str = "", col: tuple = (1, 0, 0)):
@@ -91,7 +97,7 @@ class ResultScreen(Screen):
 
     def bd(self, widget):
         """Cria backup no Banco de Dados."""
-        modo = self.config["_tipo_de_db"]
+        modo = self.configs["_tipo_de_db"]
         if modo == "test_db" and self.dados:
             bd = TestDB('./dbs/documentos.db')
             bd.inserir_documentos(dados=self.dados)

@@ -19,50 +19,23 @@ Builder.load_file("savedscreen.kv", encoding='latin-1')
 
 class SavedScreen(Screen):
     """Tela que exibe os dados salvos e permite filtragem por mês e ano."""
-    config = Config()
-    configs = config.get_configs()
-    # Obtendo configurações padrões
-    (
-        _traduzir,
-        _default_months,
-        _default_months_list,
-        _default_months_list_to_show,
-        _default_year,
-        _default_years_list,
-        _tipo_de_db
-    ) = (
-        configs["_traduzir"],
-        configs["_default_months"],
-        configs["_default_months_list"],
-        configs["_default_months_list_to_show"],
-        configs["_default_year"],
-        configs["_default_years_list"],
-        configs["_tipo_de_db"]
-    )
-    recycleView = ObjectProperty(None)
-    totalView = ObjectProperty(None)
-    dados = None
-    clicado = False
-    str_year = _default_year
-    end_year = _default_year
-    years_list = _default_years_list
-    years_to_show = StringProperty(str(_default_year))
-    months = StringProperty(_default_months)
-    months_list = _default_months_list
-    months_list_to_show = StringProperty(str(_default_months_list_to_show).replace(
-        "[", "").replace("]", ""))
-    total = []
+    years_to_show = StringProperty()
+    months = StringProperty()
+    months_list_to_show = StringProperty()
 
-    def on_enter(self, *args):
-        self.configs = Config().get_configs()
+    def __init__(self, **kw):
+        super().__init__(**kw)
+        self.config = Config()
+        self.configs = self.config.get_configs()
+        # Obtendo configurações padrões
         (
-            _traduzir,
-            _default_months,
-            _default_months_list,
-            _default_months_list_to_show,
-            _default_year,
-            _default_years_list,
-            _tipo_de_db
+            self._traduzir,
+            self._default_months,
+            self._default_months_list,
+            self._default_months_list_to_show,
+            self._default_year,
+            self._default_years_list,
+            self._tipo_de_db
         ) = (
             self.configs["_traduzir"],
             self.configs["_default_months"],
@@ -72,13 +45,47 @@ class SavedScreen(Screen):
             self.configs["_default_years_list"],
             self.configs["_tipo_de_db"]
         )
-        self.str_year = _default_year
-        self.end_year = _default_year
-        self.years_list = _default_years_list
-        self.years_to_show = str(_default_year)
-        self.months = _default_months
-        self.months_list = _default_months_list
-        self.months_list_to_show = str(_default_months_list_to_show).replace(
+        self.recycleView = ObjectProperty(None)
+        self.totalView = ObjectProperty(None)
+        self.dados = None
+        self.clicado = False
+        self.str_year = self._default_year
+        self.end_year = self._default_year
+        self.years_list = self._default_years_list
+        self.total = []
+        self.months_list = self._default_months_list
+        self.months_list_to_show = str(self._default_months_list_to_show).replace(
+            "[", "").replace("]", "")
+
+    def on_enter(self, *args):
+        self.config.read_configs()
+        self.configs = self.config.get_configs()
+        (
+            self._traduzir,
+            self._default_months,
+            self._default_months_list,
+            self._default_months_list_to_show,
+            self._default_year,
+            self._default_years_list,
+            self._tipo_de_db,
+            self._filters
+        ) = (
+            self.configs["_traduzir"],
+            self.configs["_default_months"],
+            self.configs["_default_months_list"],
+            self.configs["_default_months_list_to_show"],
+            self.configs["_default_year"],
+            self.configs["_default_years_list"],
+            self.configs["_tipo_de_db"],
+            self.configs["_filters"]
+        )
+        self.str_year = self._default_year
+        self.end_year = self._default_year
+        self.years_list = self._default_years_list
+        self.years_to_show = str(self._default_year)
+        self.months = self._default_months
+        self.months_list = self._default_months_list
+        self.months_list_to_show = str(self._default_months_list_to_show).replace(
             "[", "").replace("]", "")
 
     def on_data_validate(self, widget):
@@ -102,9 +109,10 @@ class SavedScreen(Screen):
                 to_show.append(int(lis[0]))
 
         meses_ordenados = sorted(meses_set)
-        self.months_list = [calendar.month_name[numero] for numero in meses_ordenados]
-        self.months_list_to_show = ", ".join(map(str, meses_ordenados))
-        self.months = ", ".join(self.months_list)
+        meses = [self.config.translate_back(calendar.month_name[numero]) for numero in meses_ordenados]
+        self.months_list = [numero for numero in meses_ordenados]
+        self.months_list_to_show = ", ".join(map(str, self.months_list))
+        self.months = ", ".join(meses)
 
     def on_year_validate(self, widget):
         """Valida e configura a lista de anos."""
@@ -131,6 +139,8 @@ class SavedScreen(Screen):
     def on_button_click(self):
         """Manipula o clique do botão para filtrar e exibir dados."""
         dados = StorageManager().load_data("dados")
+        if not dados:
+            return None
         show, anos_verify = [], []
 
         # Verifica se há um 0 em years_list, se sim, pega todos os anos
@@ -142,10 +152,11 @@ class SavedScreen(Screen):
 
         for mes in self.months_list:
             show.extend(
-                dado for dado in anos_verify if self._verify_month(mes, self.config.translate(dado.get("data"))))
+                dado for dado in anos_verify if self._verify_month(mes, dado.get("data")))
 
+        show = self._filtro(show)
         if show:
-            self.dados = [Dados(**dado) for dado in show]
+            self.dados = show
             totais, total = Backup(lista=self.dados).get_totals()
             self.total = [{"user": key, "total": value} for key, value in total.items()]
         else:
@@ -161,6 +172,8 @@ class SavedScreen(Screen):
             db = TestDB('./dbs/documentos.db')
             dados = db.buscar_documentos()
             db.fechar_conexao()
+            if not dados:
+                return None
         else:
             return None
         show, anos_verify = [], []
@@ -174,17 +187,17 @@ class SavedScreen(Screen):
 
         for mes in self.months_list:
             show.extend(
-                dado for dado in anos_verify if self._verify_month(mes, self.config.translate(dado.get("data"))))
+                dado for dado in anos_verify if self._verify_month(mes, dado.get("data")))
 
+        for dado in show:
+            dado["duplex"] = bool(dado.get('duplex'))
+            dado["paginas"] = str(dado.get('paginas'))
+            dado["escala_de_cinza"] = bool(dado.get('escala_de_cinza'))
+            dado["copias"] = str(dado.get('copias'))
+
+        show = self._filtro(show)
         if show:
-            if self._tipo_de_db == "test_db":
-                for dado in show:
-                    dado["duplex"] = bool(dado.get('duplex'))
-                    dado["paginas"] = str(dado.get('paginas'))
-                    dado["escala_de_cinza"] = bool(dado.get('escala_de_cinza'))
-                    dado["copias"] = str(dado.get('copias'))
-
-            self.dados = [Dados(**dado) for dado in show]
+            self.dados = show
             totais, total = Backup(lista=self.dados).get_totals()
             self.total = [{"user": key, "total": value} for key, value in total.items()]
         else:
@@ -197,14 +210,42 @@ class SavedScreen(Screen):
     def on_button_relatorio(self):
         """Manipula o clique do botão para fazer o relatório dos dados em PDF."""
         if self.dados:
-            Backup(self.dados).to_pdf()
+            Backup(self.dados).to_pdf(self.config.get_filter())
+
+    @staticmethod
+    def _deve_remover(dado, filtro):
+        """Determina se um dado deve ser removido com base no filtro."""
+        for field, rules in filtro.items():
+            include_set = set(rules.get("include", []))
+            exclude_set = set(rules.get("exclude", []))
+
+            # Se 'include' estiver vazio, incluir todos exceto os 'exclude'
+            if not include_set:
+                if str(dado[field]) in exclude_set:
+                    return True
+            else:
+                if str(dado[field]) not in include_set or dado[field] in exclude_set:
+                    return True
+        return False
+
+    def _filtro(self, dados: list[dict]) -> list[Dados]:
+        filtro = self.config.get_filter()
+
+        dados_removidos = [dado for dado in dados if self._deve_remover(dado, filtro)]
+
+        # Dados não removidos
+        dados_nao_removidos = [dado for dado in dados if dado not in dados_removidos]
+
+        # Criar a lista final de objetos Dados
+        new_list = [Dados(**dado) for dado in dados_nao_removidos]
+        return new_list
 
     def _filtrar_anos(self, dados, anos):
         """Filtra os dados por anos."""
         if len(anos) == 2:
-            return [dado for dado in dados if self._verify_between_years(anos, self.config.translate(dado.get("data")))]
+            return [dado for dado in dados if self._verify_between_years(anos, dado.get("data"))]
         elif len(anos) == 1:
-            return [dado for dado in dados if self._verify_year(anos, self.config.translate(dado.get("data")))]
+            return [dado for dado in dados if self._verify_year(anos, dado.get("data"))]
         return []
 
     def show_data(self):
@@ -215,20 +256,17 @@ class SavedScreen(Screen):
         """Exibe os totais no TotalView."""
         self.totalView.data = self.total
 
-    @staticmethod
-    def _verify_month(month, verificar):
+    def _verify_month(self, month, verificar):
         """Verifica se o mês corresponde ao dado."""
-        mes_pego = datetime.datetime.strptime(verificar, '%d %B %Y').strftime("%B")
+        mes_pego = datetime.datetime.strptime(verificar, self.config.get_data_format()).month
         return mes_pego == month
 
-    @staticmethod
-    def _verify_between_years(anos: list, ano: str):
+    def _verify_between_years(self, anos: list, ano: str):
         """Verifica se o ano está dentro do intervalo."""
-        ano_pego = datetime.datetime.strptime(ano, '%d %B %Y').date().year
+        ano_pego = datetime.datetime.strptime(ano, self.config.get_data_format()).date().year
         return anos[0] <= ano_pego <= anos[1]
 
-    @staticmethod
-    def _verify_year(anos: list, ano: str):
+    def _verify_year(self, anos: list, ano: str):
         """Verifica se o ano corresponde ao dado."""
-        ano_pego = datetime.datetime.strptime(ano, '%d %B %Y').date().year
+        ano_pego = datetime.datetime.strptime(ano, self.config.get_data_format()).date().year
         return ano_pego == anos[0]

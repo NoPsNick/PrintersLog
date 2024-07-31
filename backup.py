@@ -98,7 +98,7 @@ class Backup:
     def _calcular_periodo(self):
         # Converte strings de datas em objetos datetime
         datas_convertidas = list(set([datetime.datetime.strptime(
-            self.config.translate(data.data), '%d %B %Y') for data in self.lista]))
+            self.config.translate(data.data), self.config.get_data_format()) for data in self.lista]))
 
         # Ordena as datas
         datas_convertidas.sort()
@@ -110,12 +110,14 @@ class Backup:
         # Calcula a diferença em dias entre a primeira e a última data
         diferenca_dias = (ultima_data - primeira_data).days + 1
 
-        return primeira_data.strftime('%d-%m-%Y'), ultima_data.strftime('%d-%m-%Y'), diferenca_dias
+        return primeira_data.strftime(self.config.get_data_format()), ultima_data.strftime(
+            self.config.get_data_format()), diferenca_dias
 
     def _formatar_datas(self):
         # Pega as datas da lista sem duplicatas, também transformando-as em outro formato
         datas = list(set([(datetime.datetime.strptime(
-            self.config.translate(data.data), '%d %B %Y')).strftime('%d-%m-%Y') for data in self.lista]))
+            self.config.translate(data.data), self.config.get_data_format())).strftime(self.config.get_data_format())
+                          for data in self.lista]))
         if len(datas) == 0:
             datas_formatadas = ""
             return datas_formatadas
@@ -126,8 +128,8 @@ class Backup:
             datas_formatadas = ", ".join(datas[:-1]) + " e " + datas[-1]
             return datas_formatadas
 
-    def to_pdf(self):
-        data = datetime.date.today().strftime('%d-%m-%Y')
+    def to_pdf(self, filtros: dict = None):
+        data = datetime.date.today()
         pdf = FPDF(orientation="P", unit="pt", format="A4")
         pdf.add_page()
         pdf.set_font(family="Times", style="B", size=24)
@@ -136,7 +138,7 @@ class Backup:
         pdf.set_font(family="Times", style="B", size=14)
         pdf.cell(w=200, h=20, txt="Data da criação do relatório: ", border=1)
         pdf.set_font(family="Times", style="", size=12)
-        pdf.cell(w=0, h=20, txt=data, border=1, ln=1)
+        pdf.cell(w=0, h=20, txt=data.strftime(self.config.get_data_format()), border=1, ln=1)
         pdf.cell(w=0, h=5, txt="", border=0, ln=1)
         # Datas que estiveram no relatório
         datas_formatadas = self._formatar_datas()
@@ -159,7 +161,7 @@ class Backup:
         pdf.cell(w=0, h=5, txt="", border=0, ln=1)
         # Cabeçalho
         pdf.set_font(family="Times", style="B", size=7)
-        pdf.cell(w=50, h=10, txt="Data", border=1)
+        pdf.cell(w=60, h=10, txt="Data", border=1)
         pdf.cell(w=60, h=10, txt="Usuário", border=1)
         pdf.cell(w=20, h=10, txt="Pág", border=1)
         pdf.cell(w=20, h=10, txt="Cóp", border=1)
@@ -171,15 +173,14 @@ class Backup:
         for dado in self.lista:
             paginas = math.ceil(int(dado.paginas) / 2) if dado.duplex else int(dado.paginas)
             total += paginas * int(dado.copias)
-            pdf.set_font(family="Times", style="B", size=4)
-            pdf.cell(w=50, h=10, txt=str(dado.data + "\n" + dado.hora), border=1)
-            pdf.set_font(family="Times", style="B", size=5)
+            pdf.set_font(family="Times", style="B", size=6)
+            data_atual = dado.data
+            pdf.cell(w=60, h=10, txt=str(data_atual + " " + dado.hora), border=1)
             pdf.cell(w=60, h=10, txt=str(dado.user), border=1)
-            pdf.set_font(family="Times", style="B", size=7)
             pdf.cell(w=20, h=10, txt=str(dado.paginas), border=1)
             pdf.cell(w=20, h=10, txt=str(dado.copias), border=1)
-            pdf.set_font(family="Times", style="B", size=4)
-            duplex, escala_de_cinza = "Sim" if dado.duplex else "Não", "Escala de Cinza" if dado.escala_de_cinza else "Normal"
+            pdf.set_font(family="Times", style="B", size=5)
+            duplex, escala_de_cinza = "Sim" if dado.duplex else "Não", "Com Escala de Cinza" if dado.escala_de_cinza else "Normal"
             pdf.cell(w=20, h=10, txt=duplex, border=1)
             pdf.set_font(family="Times", style="B", size=7)
             pdf.cell(w=25, h=10, txt=str(total), border=1)
@@ -188,7 +189,7 @@ class Backup:
             impressora_arquivo_est = self._truncate_text(pdf, str(text), 1000)
             pdf.multi_cell(w=0, h=10, txt=str(impressora_arquivo_est), border=1)
         pdf.set_font(family="Times", style="B", size=12)
-        pdf.cell(w=100, h=20, txt="Total de páginas: ", border=1)
+        pdf.cell(w=90, h=20, txt="Total de folhas: ", border=1)
         pdf.cell(w=0, h=20, txt=str(total), border=1, ln=1)
         # Cabeçalho
         pdf.cell(w=0, h=5, txt="", border=0, ln=1)
@@ -201,5 +202,18 @@ class Backup:
             pdf.set_font(family="Times", style="B", size=7)
             pdf.cell(w=60, h=20, txt=str(user), border=1)
             pdf.cell(w=0, h=20, txt=str(total[user]), border=1, ln=1)
-
-        pdf.output(name=f"./pdfs/{data}.pdf")
+        if filtros:
+            pdf.cell(w=0, h=5, txt="", border=0, ln=1)
+            # Cabeçalho
+            pdf.set_font(family="Times", style="B", size=7)
+            pdf.cell(w=75, h=10, txt="Filtros utilizados:", border=1)
+            texto = ""
+            for field, rules in filtros.items():
+                includes = ",".join(rules.get('include', []))
+                excludes = ",".join(f"-{item}" for item in rules.get('exclude', []))
+                campo = f"{field}: {includes}{',' if includes and excludes else ''}{excludes}"
+                if includes or excludes:  # Adiciona campo apenas se há conteúdo a ser adicionado
+                    texto = f"{texto}, {campo}" if texto else campo
+            pdf.set_font(family="Times", style="B", size=5)
+            pdf.cell(w=0, h=10, txt=texto, border=1, ln=1)
+        pdf.output(name=f"./pdfs/{data.strftime('%d-%m-%Y')}.pdf")

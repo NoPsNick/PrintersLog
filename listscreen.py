@@ -17,10 +17,10 @@ class ListScreen(Screen):
     def __init__(self, **kw):
         super().__init__(**kw)
         self.lista = None
-        self.config = None
+        self.config = Config()
 
     def on_pre_enter(self, *args):
-        self.config = Config()
+        self.config.read_configs()
         self.lista = self.config.get_configs().get("_traduzir")
         self.update_list()
 

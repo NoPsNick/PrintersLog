@@ -96,8 +96,9 @@
                             height: dp(40)
                             on_press: root.on_button_click_db()
                         Button:
-                            text: "Filtro"
+                            text: "Filtros"
                             height: dp(40)
+                            on_press: app.manager.push("FilterScreen")
             BoxLayout:
                 orientation: "horizontal"
                 size_hint_y: 0.65  # Ajuste o tamanho para que não ocupe muito espaço

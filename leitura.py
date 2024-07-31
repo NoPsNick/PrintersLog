@@ -1,3 +1,4 @@
+import datetime
 import \
     os  # Importa a biblioteca os para interagir com o sistema operacional, como navegar em diretórios e manipular arquivos
 import re  # Importa a biblioteca re para utilizar expressões regulares para pesquisa e manipulação de strings
@@ -19,12 +20,12 @@ class Leitura:
                 "</title>"]  # Lista de strings HTML e caracteres a serem removidos durante a leitura do arquivo
 
     def __init__(self, root: str = None):
-        self.config = Config().get_configs()
-        self._default_root = root if root else self.config.get('_printers_path')
+        self.config = Config()
+        self.configs = self.config.get_configs()
+        self._default_root = root if root else self.configs.get('_printers_path')
         self.root = root  # Inicializa a classe com o diretório especificado (ou o padrão)
 
-    @staticmethod
-    def _ler(filepath):
+    def _ler(self, filepath):
         """
         Método estático responsável por ler e extrair dados de um único arquivo HTML.
         """
@@ -35,7 +36,9 @@ class Leitura:
         title = soup.title.string  # Extrai o título do documento HTML
         date_match = re.search(r'(\d{1,2} \w+ \d{4})', title)  # Usa expressão regular para encontrar a data no título
         if date_match:
-            date = date_match.group(1)  # Se a data for encontrada, armazena-a na variável date
+            date = datetime.datetime.strptime(self.config.translate(
+                date_match.group(1)), '%d %B %Y').strftime(
+                self.config.get_data_format())  # Se a data for encontrada, armazena-a na variável date
         else:
             date = "1 janeiro 0001"
 

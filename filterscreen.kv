@@ -1,0 +1,74 @@
+#:import boxlayout_with_action_bar boxlayout_with_action_bar
+
+
+<FilterScreen>:
+    BoxLayoutWithActionBar:
+        title: "Filtros"
+        BoxLayout:
+            orientation: 'vertical'
+
+            Label:
+                text: "Filtros dos Resultados"
+                font_size: '20sp'
+                size_hint_y: None
+                height: self.texture_size[1]
+
+            GridLayout:
+                cols: 2
+                spacing: 10
+
+                Label:
+                    text: "Data"
+                TextInput:
+                    id: data_input
+                    multiline: True
+
+                Label:
+                    text: "Usuário"
+                TextInput:
+                    id: usuario_input
+                    multiline: True
+
+                Label:
+                    text: "Impressora"
+                TextInput:
+                    id: impressora_input
+                    multiline: True
+
+                Label:
+                    text: "Estação"
+                TextInput:
+                    id: estacao_input
+                    multiline: True
+
+                Label:
+                    text: "Duplex"
+                BoxLayout:
+                    orientation: 'horizontal'
+                    CheckBox:
+                        id: duplex_true
+                    Label:
+                        text: "True"
+                    CheckBox:
+                        id: duplex_false
+                    Label:
+                        text: "False"
+
+                Label:
+                    text: "Escala de Cinza"
+                BoxLayout:
+                    orientation: 'horizontal'
+                    CheckBox:
+                        id: escala_true
+                    Label:
+                        text: "True"
+                    CheckBox:
+                        id: escala_false
+                    Label:
+                        text: "False"
+        Button:
+            text: "Salvar Filtros"
+            size_hint_y: None
+            height: 50
+            on_release:
+                root.filter_results(data_input.text,usuario_input.text,impressora_input.text,estacao_input.text,{'True': duplex_true.active, 'False': duplex_false.active},{'True': escala_true.active, 'False': escala_false.active})

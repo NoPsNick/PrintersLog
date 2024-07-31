@@ -15,9 +15,9 @@ Builder.load_file("configscreen.kv", encoding='latin-1')
 class ConfigScreen(Screen):
     def __init__(self, **kw):
         super().__init__(**kw)
-        self.configs = None
+        self.config = Config()
+        self.configs = self.config.get_configs()
         self.dicionario = {}
-        self.config = None
         self.db_types = {'TestDB': 'test_db',
                          'Desativado': 'disabled'}
 
@@ -26,7 +26,7 @@ class ConfigScreen(Screen):
         self.dicionario = {}
 
     def get_configs(self):
-        self.config = Config()
+        self.config.read_configs()
         self.configs = self.config.get_configs()
         if self.configs['_tipo_de_db'] == 'test_db':
             self.ids.db_testdb.state = 'down'
@@ -97,9 +97,11 @@ class ConfigScreen(Screen):
                 to_show.append(int(lis[0]))
 
         meses_ordenados = sorted(meses_set)
-        months_list = [calendar.month_name[numero] for numero in meses_ordenados]
-        months_list_to_show = [int(month) for month in (map(str, meses_ordenados))]
-        months = ", ".join(months_list)
+        meses = [self.config.translate_back(calendar.month_name[numero]) for numero in meses_ordenados]
+        months_list = [numero for numero in meses_ordenados]
+        months_list_to_show = ", ".join(map(str, months_list))
+        months = ", ".join(meses)
+
         self.config._default_months = months
         self.config._default_months_list = months_list
         self.config._default_months_list_to_show = months_list_to_show
