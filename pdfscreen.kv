@@ -1,0 +1,71 @@
+#:import boxlayout_with_action_bar boxlayout_with_action_bar
+#:import bordered_boxlayout bordered_boxlayout
+
+<PDFScreen>:
+    BoxLayoutWithActionBar:
+        title: "Filtros"
+        BoxLayout:
+            orientation: 'horizontal'
+            BorderedBoxLayout:
+                ScrollView:
+                    size_hint: (0.70, 1)
+                    do_scroll_x: True
+                    do_scroll_y: True
+                    pos_hint: {"center_y": 0.5}
+                    GridLayout:
+                        size_hint_y: None
+                        cols: 1
+                        height: self.minimum_height
+                        Label:
+                            id: preview
+                            height: self.texture_size[1]
+                            text_size: self.width, None
+                            size_hint: 1, None
+                            halign: 'left'
+                            valign: 'top'
+                            size: self.size
+                            text: "PDF Preview"
+                            on_touch_down: root.copy_text(self, *args)
+            BoxLayout:
+                orientation: 'vertical'
+                size_hint: (0.30, 1)
+                padding: [5, 5, 5, 5]
+                pos_hint: {"center_y": 0.5}
+                BoxLayout:
+                    orientation: 'vertical'
+                    size_hint_y: None
+                    Button:
+                        text: 'Set Font'
+                        on_release: root.show_set_font_popup()
+                    Button:
+                        text: 'Add Cell'
+                        on_release: root.show_add_cell_popup()
+                    Button:
+                        text: 'Add Multicell'
+                        on_release: root.show_add_multicell_popup()
+                    Button:
+                        text: "Add código Python"
+                        on_release: root.show_config_code_screen()
+                BoxLayout:
+                    orientation: 'vertical'
+                    size_hint_y: None
+                    height: 30
+                    Button:
+                        text: "Remover última adição"
+                        on_release: root.remover()
+                BoxLayout:
+                    orientation: 'vertical'
+                    size_hint_y: None
+                    height: 30*3
+                    Button:
+                        text: "Estilos de PDF salvo"
+                        on_release: root.pegar_pdf_popup()
+                    Button:
+                        text: "Pegar estilo padrão"
+                        on_release: root.pegar_pdf_padrao()
+                    Button:
+                        text: 'Salvar estilo de PDF'
+                        on_release: root.show_style_save_popup()
+                    Button:
+                        text: 'Gerar PDF'
+                        on_release: root.show_save_popup()

@@ -136,11 +136,15 @@ class SavedScreen(Screen):
         self.years_to_show = ", ".join(map(str, anos_ordenados))
         self.years_list = [[ano] for ano in anos_ordenados]
 
-    def on_button_click(self):
-        """Manipula o clique do botão para filtrar e exibir dados."""
-        dados = StorageManager().load_data("dados")
-        if not dados:
-            return None
+    def _initialize_data(self):
+        """Inicializa dados e totais."""
+        self.dados = []
+        self.total = []
+        self.show_data()
+        self.show_total()
+
+    def _process_data(self, dados):
+        """Processa os dados para filtro e cálculo de totais."""
         show, anos_verify = [], []
 
         # Verifica se há um 0 em years_list, se sim, pega todos os anos
@@ -155,16 +159,24 @@ class SavedScreen(Screen):
                 dado for dado in anos_verify if self._verify_month(mes, dado.get("data")))
 
         show = self._filtro(show)
+
         if show:
             self.dados = show
             totais, total = Backup(lista=self.dados).get_totals()
             self.total = [{"user": key, "total": value} for key, value in total.items()]
         else:
-            self.dados = []
-            self.total = []
+            self._initialize_data()
 
         self.show_data()
         self.show_total()
+
+    def on_button_click(self):
+        """Manipula o clique do botão para filtrar e exibir dados."""
+        dados = StorageManager().load_data("dados")
+        if not dados:
+            self._initialize_data()
+        else:
+            self._process_data(dados)
 
     def on_button_click_db(self):
         """Manipula o clique do botão para filtrar e exibir dados do banco de dados."""
@@ -172,45 +184,26 @@ class SavedScreen(Screen):
             db = TestDB('./dbs/documentos.db')
             dados = db.buscar_documentos()
             db.fechar_conexao()
-            if not dados:
-                return None
         else:
-            return None
-        show, anos_verify = [], []
+            dados = []
 
-        # Verifica se há um 0 em years_list, se sim, pega todos os anos
-        if any(0 in sublist for sublist in self.years_list):
-            anos_verify = dados
+        if not dados:
+            self._initialize_data()
         else:
-            for anos in self.years_list:
-                anos_verify.extend(self._filtrar_anos(dados, anos))
-
-        for mes in self.months_list:
-            show.extend(
-                dado for dado in anos_verify if self._verify_month(mes, dado.get("data")))
-
-        for dado in show:
-            dado["duplex"] = bool(dado.get('duplex'))
-            dado["paginas"] = str(dado.get('paginas'))
-            dado["escala_de_cinza"] = bool(dado.get('escala_de_cinza'))
-            dado["copias"] = str(dado.get('copias'))
-
-        show = self._filtro(show)
-        if show:
-            self.dados = show
-            totais, total = Backup(lista=self.dados).get_totals()
-            self.total = [{"user": key, "total": value} for key, value in total.items()]
-        else:
-            self.dados = []
-            self.total = []
-
-        self.show_data()
-        self.show_total()
+            # Ajusta campos específicos dos dados do banco de dados
+            for dado in dados:
+                dado["duplex"] = bool(dado.get('duplex'))
+                dado["paginas"] = str(dado.get('paginas'))
+                dado["escala_de_cinza"] = bool(dado.get('escala_de_cinza'))
+                dado["copias"] = str(dado.get('copias'))
+            self._process_data(dados)
 
     def on_button_relatorio(self):
         """Manipula o clique do botão para fazer o relatório dos dados em PDF."""
         if self.dados:
-            Backup(self.dados).to_pdf(self.config.get_filter())
+            screen = self.manager.get_screen("PDFScreen")
+            screen.change(self.dados, self.config.get_filter())
+            self.manager.push(screen.name)
 
     @staticmethod
     def _deve_remover(dado, filtro):

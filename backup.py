@@ -22,6 +22,7 @@ class Backup:
         data = datetime.datetime.now().strftime('%d-%m-%Y')
         for dado in self.lista:
             filename = f".\\csvs\\{dado.principal}.csv" if tipo == 'csv' else f".\\csvs\\totals\\{dado.principal}_total_{data}.csv"
+            self.config.directory_check(filename)
             with open(filename, "w") as csv:
                 csv.write(f"Relatório feito na data: {data}\n")
                 if tipo == 'csv':
@@ -188,8 +189,10 @@ class Backup:
             text = dado.impressora + ", " + dado.arquivo + ", " + dado.est + ", " + escala_de_cinza + " e " + dado.principal
             impressora_arquivo_est = self._truncate_text(pdf, str(text), 1000)
             pdf.multi_cell(w=0, h=10, txt=str(impressora_arquivo_est), border=1)
+        # Cabeçalho
         pdf.set_font(family="Times", style="B", size=12)
         pdf.cell(w=90, h=20, txt="Total de folhas: ", border=1)
+        # Total de folhas
         pdf.cell(w=0, h=20, txt=str(total), border=1, ln=1)
         # Cabeçalho
         pdf.cell(w=0, h=5, txt="", border=0, ln=1)
@@ -202,6 +205,7 @@ class Backup:
             pdf.set_font(family="Times", style="B", size=7)
             pdf.cell(w=60, h=20, txt=str(user), border=1)
             pdf.cell(w=0, h=20, txt=str(total[user]), border=1, ln=1)
+        # Filtros
         if filtros:
             pdf.cell(w=0, h=5, txt="", border=0, ln=1)
             # Cabeçalho
@@ -216,4 +220,6 @@ class Backup:
                     texto = f"{texto}, {campo}" if texto else campo
             pdf.set_font(family="Times", style="B", size=5)
             pdf.cell(w=0, h=10, txt=texto, border=1, ln=1)
-        pdf.output(name=f"./pdfs/{data.strftime('%d-%m-%Y')}.pdf")
+        diretorio = f"./pdfs/{data.strftime('%d-%m-%Y')}.pdf"
+        self.config.directory_check(diretorio)
+        pdf.output(name=diretorio)

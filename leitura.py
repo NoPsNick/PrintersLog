@@ -22,8 +22,8 @@ class Leitura:
     def __init__(self, root: str = None):
         self.config = Config()
         self.configs = self.config.get_configs()
-        self._default_root = root if root else self.configs.get('_printers_path')
-        self.root = root  # Inicializa a classe com o diretório especificado (ou o padrão)
+        self.root = root if root else self.configs.get(
+            '_printers_path')  # Inicializa a classe com o diretório especificado (ou o padrão)
 
     def _ler(self, filepath):
         """

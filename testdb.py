@@ -1,11 +1,14 @@
 # -*- coding: latin-1 -*-
 import sqlite3
 
+from configuration import Config
 from models import Dados
 
 
 class TestDB:
     def __init__(self, db_file):
+        self.config = Config
+        self.config.directory_check(db_file)
         self.conn = sqlite3.connect(db_file)
         self.cursor = self.conn.cursor()
         self._create_table()

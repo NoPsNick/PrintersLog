@@ -8,7 +8,7 @@ class StorageManager:
             file = open(filename, "r")
             data = file.read()
             file.close()
-        except:
+        except FileNotFoundError:
             return None
         return json.loads(data)
 

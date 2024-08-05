@@ -1,13 +1,12 @@
 # -*- coding: latin-1 -*-
 from functools import partial
 
-from kivy.graphics import Color, Line
 from kivy.lang import Builder
-from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.screenmanager import Screen
 
+from bordered_boxlayout import BorderedBoxLayout
 from configuration import Config
 
 Builder.load_file("listscreen.kv", encoding='latin-1')
@@ -46,13 +45,3 @@ class ListScreen(Screen):
             grid.add_widget(item_box)
 
 
-class BorderedBoxLayout(BoxLayout):
-    def __init__(self, **kwargs):
-        super(BorderedBoxLayout, self).__init__(**kwargs)
-        with self.canvas.before:
-            Color(1, 1, 1, 1)  # Cor branca para o fundo
-            self.line = Line(rectangle=(self.x, self.y, self.width, self.height), width=1.5)
-        self.bind(pos=self.update_border, size=self.update_border)
-
-    def update_border(self, *args):
-        self.line.rectangle = (self.x, self.y, self.width, self.height)
