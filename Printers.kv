@@ -1,0 +1,65 @@
+#:import utils kivy.utils
+#:import boxlayout_with_action_bar boxlayout_with_action_bar
+#:import configscreen configscreen
+#:import listscreen listscreen
+#:import resultscreen resultscreen
+#:import savedscreen savedscreen
+#:import filterscreen filterscreen
+#:import pdfscreen pdfscreen
+#:set color1 "#DD7835"
+#:set color2 "#D8D8D8"
+
+
+<MainMenu>:
+    BoxLayout:
+        orientation: 'vertical'
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_y: None
+            height: dp(50)
+            Label:
+                text: 'PRINTERS LOG'
+                font_size: 32
+                size_hint_y: None
+                height: dp(50)
+        BoxLayout:
+            orientation: 'vertical'
+            padding: [10, 10, 10, 10]
+            spacing: dp(10)
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_y: None
+                height: dp(50)
+                Button:
+                    text: 'Ler os Dados das Impressoras'
+                    on_press: app.manager.push("ResultScreen")
+                Button:
+                    text: 'Dados Salvos'
+                    on_press: app.manager.push("SavedScreen")
+                Button:
+                    text: 'Configurações'
+                    on_press: app.manager.push("ConfigScreen")
+
+# Telas
+<ScreenManager>:
+    MainMenu:
+        name: "MainMenu"
+        id: MainMenu
+    ResultScreen:
+        name: "ResultScreen"
+        id: ResultScreen
+    SavedScreen:
+        name: "SavedScreen"
+        id: SavedScreen
+    ConfigScreen:
+        name: "ConfigScreen"
+        id: ConfigScreen
+    ListScreen:
+        name: "ListScreen"
+        id: ListScreen
+    FilterScreen:
+        name: "FilterScreen"
+        id: FilterScreen
+    PDFScreen:
+        name: "PDFScreen"
+        id: PDFScreen

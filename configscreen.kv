@@ -1,0 +1,124 @@
+#:import utils kivy.utils
+#:import boxlayout_with_action_bar boxlayout_with_action_bar
+
+<ConfigScreen>:
+    BoxLayoutWithActionBar:
+        title: "Configurações"
+        BoxLayout:
+            orientation: 'vertical'
+
+            # Traduzir Section
+            Label:
+                text: 'Traduzir (Não é recomendado alterar as traduções, pois alteram  o programa inteiro.)'
+                size_hint: 1, 0.1
+
+            BoxLayout:
+                id: teste
+                orientation: 'horizontal'
+                size_hint: 1, 0.2
+                TextInput:
+                    id: chave
+                    hint_text: 'Data original'
+                    multiline: False
+                    size_hint: 0.5, 1
+                TextInput:
+                    id: valor
+                    multiline: False
+                    hint_text: 'Data traduzida'
+                    size_hint: 0.5, 1
+
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint: 1, 0.1
+                Button:
+                    text: 'Criar Nova Tradução'
+                    size_hint: 0.33, 1
+                    on_press: root.add_translation()
+                Button:
+                    text: 'Salvar Traduções Criadas na Lista'
+                    size_hint: 0.33, 1
+                    on_press: root.save_additions_on_translate()
+                Button:
+                    text: 'Ver a Lista Para Editar'
+                    size_hint: 0.33, 1
+                    on_press: app.manager.push("ListScreen")
+
+            # Mês e Ano Section
+            BoxLayout:
+                orientation: 'vertical'
+                size_hint: 1, 0.2
+
+                BoxLayout:
+                    orientation: 'horizontal'
+                    size_hint: 1, 0.5
+                    Label:
+                        text: 'Mês'
+                        size_hint: 0.3, 1
+                    TextInput:
+                        id: month
+                        multiline: False
+                        hint_text: 'Mês'
+                        size_hint: 0.7, 1
+
+                BoxLayout:
+                    orientation: 'horizontal'
+                    size_hint: 1, 0.5
+                    Label:
+                        text: 'Ano'
+                        size_hint: 0.3, 1
+                    TextInput:
+                        id: year
+                        multiline: False
+                        hint_text: 'Ano'
+                        size_hint: 0.7, 1
+        Button:
+            text: 'Salvar Mês e Ano'
+            size_hint: 1, 0.1
+            on_press: root.save_month_year()
+
+        # Tipo de Banco de Dados Section (Atualizada)
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint: 1, 0.15
+
+            Label:
+                text: 'Tipo de Banco de Dados'
+                size_hint: 0.3, 1
+
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint: 0.7, 1
+
+                ToggleButton:
+                    id: db_testdb
+                    text: 'TestDB'
+                    group: 'db_type'
+                    size_hint_x: 0.5
+                ToggleButton:
+                    id: db_disabled
+                    text: 'Desativado'
+                    group: 'db_type'
+                    size_hint_x: 0.5
+
+            Button:
+                text: 'Salvar Tipo'
+                size_hint: 0.2, 1
+                on_press: root.save_db_type()
+
+        # Impressoras Section
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint: 1, 0.15  # Ajuste o size_hint_y para garantir o mesmo tamanho
+
+            Label:
+                text: 'Caminho Principal das Impressoras'
+                size_hint: 0.3, 1
+            TextInput:
+                id: printer_path_input
+                multiline: False
+                hint_text: 'Caminho das Impressoras'
+                size_hint: 0.5, 1
+            Button:
+                text: 'Salvar Caminho'
+                size_hint: 0.2, 1
+                on_press: root.save_printers_path()

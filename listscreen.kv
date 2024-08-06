@@ -1,0 +1,29 @@
+#:import utils kivy.utils
+#:import boxlayout_with_action_bar boxlayout_with_action_bar
+#:set color1 "#DD7835"
+#:set color2 "#D8D8D8"
+
+<ListScreen>:
+    BoxLayoutWithActionBar:
+        title: "Lista das traduções"
+        BoxLayout:
+            orientation: 'vertical'
+
+            ScrollView:
+                size_hint: 1, 0.9
+                GridLayout:
+                    id: list_grid
+                    cols: 1
+                    size_hint_y: None
+                    height: self.minimum_height
+                    row_default_height: 40
+                    row_force_default: True
+                    padding: 3
+                    spacing: 3
+
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint: 0.5, 0.1
+                Button:
+                    text: 'Aplicar'
+                    on_press: root.on_button_save()
