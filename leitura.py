@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup  # Importa BeautifulSoup da biblioteca bs4 para an
 
 from configuration import Config
 from models import \
-    Dados  # Importa a classe Dados do módulo models, presumivelmente para armazenar dados extraídos de arquivos HTML
+    Dados  # Importa a classe Dados do módulo models, para armazenar dados extraídos de arquivos HTML
 
 
 class Leitura:

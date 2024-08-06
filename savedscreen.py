@@ -181,7 +181,7 @@ class SavedScreen(Screen):
     def on_button_click_db(self):
         """Manipula o clique do botão para filtrar e exibir dados do banco de dados."""
         if self._tipo_de_db == "test_db":
-            db = TestDB('./dbs/documentos.db')
+            db = TestDB('./dbs/banco_de_dados.db')
             dados = db.buscar_documentos()
             db.fechar_conexao()
         else:

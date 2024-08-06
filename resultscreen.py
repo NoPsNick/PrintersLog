@@ -99,7 +99,7 @@ class ResultScreen(Screen):
         """Cria backup no Banco de Dados."""
         modo = self.configs["_tipo_de_db"]
         if modo == "test_db" and self.dados:
-            bd = TestDB('./dbs/documentos.db')
+            bd = TestDB('./dbs/banco_de_dados.db')
             bd.inserir_documentos(dados=self.dados)
             bd.fechar_conexao()
             self.msg_change("Backup salvo no Banco de Dados com sucesso.", (0, 1, 0, .5))

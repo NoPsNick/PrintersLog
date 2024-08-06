@@ -123,43 +123,68 @@ class PDFScreen(Screen):
         self.update_preview()
 
     def pegar_pdf_popup(self):
-        content = BoxLayout(orientation='vertical')
+        content = BoxLayout(padding=10, orientation='vertical')
+
+        sv = ScrollView(size_hint=(1, 1), do_scroll_x=False, do_scroll_y=True, pos_hint={"center_y": 0.5})
+
+        custom_pdfs = self.pdf_generator.get_customs()
+
+        box = BoxLayout(orientation='vertical', size_hint_y=None)
+        box.bind(minimum_height=box.setter('height'))
+
+        for custom_pdf in custom_pdfs:
+            for key in custom_pdf.keys():
+                line_box = BoxLayout(orientation='horizontal', size_hint_y=None, height=30)
+                label = Label(text=f"Nome: {key}", size_hint_x=0.7)
+                button = Button(text='Get PDF', size_hint_x=0.3)
+                button.bind(on_release=lambda instance, name=key: self.close_pegar_pdf_popup(name))
+                line_box.add_widget(label)
+                line_box.add_widget(button)
+                box.add_widget(line_box)
+
+        sv.add_widget(box)
+        content.add_widget(sv)
+
         self.nome_do_pdf_salvo = TextInput(hint_text='Nome do estilo de PDF', multiline=False)
         save_button = Button(text='Buscar estilo de PDF', on_release=self.get_pdf)
         content.add_widget(self.nome_do_pdf_salvo)
         content.add_widget(save_button)
 
-        self.popup = Popup(title='Estilos de PDF salvos', content=content, size_hint=(0.8, 0.4))
+        self.popup = Popup(title='Estilos de PDF salvos', content=content, size_hint=(0.8, 0.8))
         self.popup.open()
+
+    def close_pegar_pdf_popup(self, nome):
+        self.popup.dismiss()
+        self.pdf_generator.get_custom(nome)
+        self.update_preview()
 
     def get_pdf(self, instance):
         nome = self.nome_do_pdf_salvo.text
-        if not self.pdf_generator.get_custom(nome):
-            self.popup.dismiss()
+        pdf = self.pdf_generator.get_custom(nome)
+        self.popup.dismiss()
+        if not pdf:
             self.show_msg_popup("Error", f"Não foi encontrado o estilo de PDF salvo com o nome: {nome}")
-        else:
-            self.update_preview()
-            self.popup.dismiss()
+        self.update_preview()
 
-    def show_save_popup(self):
+    def show_generate_popup(self):
         content = BoxLayout(orientation='vertical')
         self.filename_input = TextInput(hint_text='Nome do arquivo PDF', multiline=False)
-        save_button = Button(text='Criar PDF', on_release=self.save_pdf)
+        save_button = Button(text='Criar PDF', on_release=self.generate_pdf)
         content.add_widget(self.filename_input)
         content.add_widget(save_button)
 
         self.popup = Popup(title='Criar PDF', content=content, size_hint=(0.8, 0.4))
         self.popup.open()
 
-    def save_pdf(self, instance):
+    def generate_pdf(self, instance):
         filename = self.filename_input.text or "output.pdf"
-        retorno = self.pdf_generator.save_pdf(filename)
+        retorno = self.pdf_generator.generate_pdf(filename)
+        self.popup.dismiss()
         if retorno["codigo"] == 200:
-            self.popup.dismiss()
             self.show_msg_popup("Criado", f"Seu PDF foi criado com sucesso com o nome {filename}")
         else:
-            self.popup.dismiss()
             self.show_msg_popup("Error", f"{retorno['codigo']}, mensagem: {retorno['msg']}")
+        self.update_preview()
 
     def show_style_save_popup(self):
         content = BoxLayout(orientation='vertical')
@@ -173,10 +198,9 @@ class PDFScreen(Screen):
 
     def style_save(self, instance):
         nome = self.nome.text
-        if self.pdf_generator.json_save(nome):
-            self.popup.dismiss()
-        else:
-            self.popup.dismiss()
+        save = self.pdf_generator.save(nome)
+        self.popup.dismiss()
+        if not save:
             self.show_msg_popup("Error", "Já existe um PDF salvo com este nome.")
 
     def update_preview(self):
@@ -205,18 +229,14 @@ class PDFScreen(Screen):
         self.pdf_generator.remover()
         self.update_preview()
 
-    @staticmethod
-    def copy_text(*args):
+    def copy_text(self, *args):
         """
             Clipboard.copy(label.text): Usa o módulo Clipboard para copiar o texto do Label para a área de transferência.
             on_touch_down: Adiciona um evento de toque ao Label que chama a função copy_text quando o Label é clicado.
             collide_point: Verifica se o ponto de toque está dentro dos limites do Label para garantir que o toque foi feito sobre o texto.
         """
         if args[1].collide_point(*args[2].pos):
-            Clipboard.copy(args[1].text)
-
-            if args[1].collide_point(*args[2].pos):
-                Clipboard.copy(args[1].text)
+            Clipboard.copy("\n".join(self.pdf_generator.contet_to_copy()))
 
     def show_msg_popup(self, type, message):
         content = BoxLayout(padding=10, orientation='vertical')

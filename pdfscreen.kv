@@ -7,6 +7,7 @@
         BoxLayout:
             orientation: 'horizontal'
             BorderedBoxLayout:
+                padding: 5, 5
                 ScrollView:
                     size_hint: (0.70, 1)
                     do_scroll_x: True
@@ -68,4 +69,4 @@
                         on_release: root.show_style_save_popup()
                     Button:
                         text: 'Gerar PDF'
-                        on_release: root.show_save_popup()
+                        on_release: root.show_generate_popup()
