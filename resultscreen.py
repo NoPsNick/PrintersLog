@@ -10,7 +10,7 @@ from backup import Backup
 from configuration import Config
 from leitura import Leitura
 from storage_manager import StorageManager
-from testdb import TestDB
+from visualdados import VisualDados
 
 Builder.load_file("resultscreen.kv", encoding='latin-1')
 
@@ -99,10 +99,12 @@ class ResultScreen(Screen):
         """Cria backup no Banco de Dados."""
         modo = self.configs["_tipo_de_db"]
         if modo == "test_db" and self.dados:
-            bd = TestDB('./dbs/banco_de_dados.db')
-            bd.inserir_documentos(dados=self.dados)
-            bd.fechar_conexao()
-            self.msg_change("Backup salvo no Banco de Dados com sucesso.", (0, 1, 0, .5))
+            visu = VisualDados(dados=self.dados)
+            enviado = visu.dados_to_db()
+            if enviado:
+                self.msg_change("Backup salvo no Banco de Dados com sucesso.", (0, 1, 0, .5))
+            else:
+                self.msg_change("Os dados já estão no banco de dados.", (255, 204, 0, .5))
         else:
             self.msg_change(f"Não foi possível salvar os dados no banco de dados, "
                             f"pois ele se encontra no tipo de banco de dados: {modo}.")

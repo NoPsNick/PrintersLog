@@ -7,7 +7,7 @@ from fpdf import FPDF
 
 from configuration import Config
 from storage_manager import StorageManager
-from testdb import TestDB
+from visualdados import VisualDados
 
 
 class PDFGenerator:
@@ -21,7 +21,6 @@ class PDFGenerator:
         self.config = Config()
         self.formato_da_data = self.config.get_data_format()
         self.storage_manager = StorageManager()
-        self.data_base = TestDB
         self.pdf = FPDF(orientation=orientation, unit=unit, format=format)
         self.pdf.add_page()
         self.contents = []
@@ -56,7 +55,8 @@ class PDFGenerator:
                     run = self.run_user_code(params["code"])
                     if run != "True":
                         retorno = {"codigo": 406,
-                                   "msg": f"O recurso solicitado ({params['code']}) não foi encontrado ou não é um recurso PYTHON."
+                                   "msg": f"O recurso solicitado ({params['code']}) não foi encontrado ou não é um "
+                                          f"recurso PYTHON."
                                           f" {run}"}
         return retorno
 
@@ -188,10 +188,9 @@ class PDFGenerator:
         return False
 
     def db_save(self, nome: str) -> bool:
-        db = self.data_base('./dbs/banco_de_dados.db')
-        save = db.inserir_custompdfs(pdfs=self.contents, nome=nome)
-        db.fechar_conexao()
-        return save
+        visu = VisualDados(dados=self.contents)
+        retorno = visu.custom_pdf_to_db(nome=nome)
+        return retorno
 
     def get_customs(self) -> list[dict[str, list[dict]]]:
         return self.json_get() if self.config.get_configs().get(
@@ -200,10 +199,10 @@ class PDFGenerator:
     def json_get(self) -> list[dict[str, list[dict]]]:
         return self.storage_manager.load_data("custom_pdfs") or []
 
-    def db_get(self) -> list[dict[str, list[dict]]]:
-        db = self.data_base('./dbs/banco_de_dados.db')
-        custom_pdfs = db.obter_todos_os_nomes_e_valores()
-        db.fechar_conexao()
+    @staticmethod
+    def db_get() -> list:
+        visu = VisualDados()
+        custom_pdfs = visu.pegar_todos_os_nomes()
         return custom_pdfs
 
     def get_custom(self, nome: str) -> bool:
@@ -221,9 +220,8 @@ class PDFGenerator:
             return False
 
     def get_custom_db(self, nome: str) -> bool:
-        db = self.data_base('./dbs/banco_de_dados.db')
-        custom_db = db.obter_valores_por_nome(nome)
-        db.fechar_conexao()
+        visu = VisualDados()
+        custom_db = visu.pegar_pdf_por_nome(nome=nome)
         if custom_db:
             self.contents = custom_db
             return True
@@ -233,12 +231,6 @@ class PDFGenerator:
         custom_pdfs = self.json_get()
         existing_names = {key.lower() for dicionario in custom_pdfs for key in dicionario}
         return nome.lower() in existing_names
-
-    def check_if_name_db(self, nome: str) -> bool:
-        db = self.data_base('./dbs/banco_de_dados.db')
-        valor = db.custompdf_existe(nome)
-        db.fechar_conexao()
-        return valor
 
     def remover(self):
         if self.contents:

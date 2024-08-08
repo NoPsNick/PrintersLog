@@ -133,11 +133,11 @@ class PDFScreen(Screen):
         box.bind(minimum_height=box.setter('height'))
 
         for custom_pdf in custom_pdfs:
-            for key in custom_pdf.keys():
+            for nome in custom_pdf:
                 line_box = BoxLayout(orientation='horizontal', size_hint_y=None, height=30)
-                label = Label(text=f"Nome: {key}", size_hint_x=0.7)
+                label = Label(text=f"Nome: {nome}", size_hint_x=0.7)
                 button = Button(text='Get PDF', size_hint_x=0.3)
-                button.bind(on_release=lambda instance, name=key: self.close_pegar_pdf_popup(name))
+                button.bind(on_release=lambda instance, name=nome: self.close_pegar_pdf_popup(name))
                 line_box.add_widget(label)
                 line_box.add_widget(button)
                 box.add_widget(line_box)

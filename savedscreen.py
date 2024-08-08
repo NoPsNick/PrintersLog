@@ -12,7 +12,7 @@ from backup import Backup
 from configuration import Config
 from models import Dados
 from storage_manager import StorageManager
-from testdb import TestDB
+from visualdados import VisualDados
 
 Builder.load_file("savedscreen.kv", encoding='latin-1')
 
@@ -181,9 +181,7 @@ class SavedScreen(Screen):
     def on_button_click_db(self):
         """Manipula o clique do botão para filtrar e exibir dados do banco de dados."""
         if self._tipo_de_db == "test_db":
-            db = TestDB('./dbs/banco_de_dados.db')
-            dados = db.buscar_documentos()
-            db.fechar_conexao()
+            dados = VisualDados().pegar_documentos()
         else:
             dados = []
 

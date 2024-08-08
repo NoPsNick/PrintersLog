@@ -24,10 +24,10 @@ class Backup:
             filename = f".\\csvs\\{dado.principal}.csv" if tipo == 'csv' else f".\\csvs\\totals\\{dado.principal}_total_{data}.csv"
             self.config.directory_check(filename)
             with open(filename, "w") as csv:
-                csv.write(f"Relatório feito na data: {data}\n")
                 if tipo == 'csv':
                     csv.write(
-                        "Data,Horario,Usuario,Paginas,Copias,Impressora,Arquivo,Tipo,Tamanho,Tipo de Impressao,Estacao,Duplex,Escala de Cinza\n")
+                        "principal,data,hora,user,paginas,copias,impressora,arquivo,est,"
+                        "duplex,escala_de_cinza\n")
                 else:
                     csv.write("Usuario,Total\n")
         return data
@@ -42,8 +42,8 @@ class Backup:
         for dado in self.lista:
             with open(f".\\csvs\\{dado.principal}.csv", "a") as csv:
                 csv.write(
-                    f"{dado.data},{dado.hora},{dado.user},{dado.paginas},{dado.copias},{dado.impressora},{dado.arquivo},{dado.est},{dado.duplex},{dado.escala_de_cinza}\n")
-
+                    f"{dado.principal},{dado.data},{dado.hora},{dado.user},{dado.paginas},{dado.copias},"
+                    f'{dado.impressora},"{dado.arquivo}",{dado.est},{dado.duplex},{dado.escala_de_cinza}\n')
         return True
 
     def gerar_total(self) -> bool:
