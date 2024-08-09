@@ -15,7 +15,7 @@
 
             GridLayout:
                 cols: 2
-                spacing: 10
+                spacing: dp(10)
 
                 Label:
                     text: "Data"
@@ -69,6 +69,6 @@
         Button:
             text: "Salvar Filtros"
             size_hint_y: None
-            height: 50
+            height: dp(50)
             on_release:
                 root.filter_results(data_input.text,usuario_input.text,impressora_input.text,estacao_input.text,{'True': duplex_true.active, 'False': duplex_false.active},{'True': escala_true.active, 'False': escala_false.active})

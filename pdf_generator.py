@@ -1,6 +1,7 @@
 # -*- coding: latin-1 -*-
 import datetime
 import math
+import re
 from typing import Literal, Union
 
 from fpdf import FPDF
@@ -24,19 +25,21 @@ class PDFGenerator:
         self.pdf = FPDF(orientation=orientation, unit=unit, format=format)
         self.pdf.add_page()
         self.contents = []
+        self.primeira_font = False
 
     def set_font(self, family: str = "Times", style: Literal[
         "B", "I", "U", "BU", "UB", "BI", "IB", "IU", "UI", "BIU", "BUI", "IBU", "IUB", "UBI", "UIB"] = "",
                  size: int = 12):
         self.contents.append({"set_font": {"family": family, "style": style, "size": size}})
+        self.primeira_font = True
 
-    def cell(self, w: float = 0, h: float = 40, txt: str = "", border: Union[Literal[0, 1], bool, str] = 0,
-             ln: Union[int, Literal["DEPRECATED"]] = "DEPRECATED", align: str = "C"):
+    def cell(self, w: float = 0, h: float = 20, txt: str = "", border: Union[Literal[0, 1], bool, str, int] = 0,
+             ln: Union[int, Literal[0, 1]] = 0, align: str = "C"):
         self.contents.append({"cell": {"w": w, "h": h, "txt": txt, "border": border, "ln": ln, "align": align}})
 
-    def multicell(self, w: float, h: float = 40, txt: str = "", border: Union[Literal[0, 1], bool, str] = 0,
-                  align: str = "J"):
-        self.contents.append({"multicell": {"w": w, "h": h, "txt": txt, "border": border, "align": align}})
+    def multi_cell(self, w: float, h: float = 20, txt: str = "", border: Union[Literal[0, 1], bool, str, int] = 0,
+                   align: str = "J"):
+        self.contents.append({"multi_cell": {"w": w, "h": h, "txt": txt, "border": border, "align": align}})
 
     def python_code(self, type: str = "python_code", code: str = ""):
         self.contents.append({type: {"code": code}})
@@ -58,6 +61,9 @@ class PDFGenerator:
                                    "msg": f"O recurso solicitado ({params['code']}) não foi encontrado ou não é um "
                                           f"recurso PYTHON."
                                           f" {run}"}
+                else:
+                    return {"codigo": 404, "msg": f"Não foi possível executar a função "
+                                                  f"{method} com os comandos {params}."}
         return retorno
 
     def generate_pdf(self, filename: str) -> dict[str, int | str]:
@@ -65,7 +71,7 @@ class PDFGenerator:
         if tentativa["codigo"] == 200:
             try:
                 self.pdf.output(filename)
-            except OSError as e:
+            except Exception as e:
                 tentativa = {"codigo": 404, "msg": str(e)}
         return tentativa
 
@@ -99,6 +105,22 @@ class PDFGenerator:
                  for content in self.contents for key, value in content.items()]
         return lista
 
+    def is_first_command_set_font(self, code):
+        if not self.primeira_font:
+            # Remove possíveis comentários e espaços em branco extras
+            code = re.sub(r'#.*', '', code)
+            code = code.strip()
+
+            # Encontra todos os comandos `pdf.` no código
+            commands = re.findall(r'\b(set_font|cell|multi_cell)\(', code)
+
+            if not commands:
+                return True
+
+            # Verifica se o primeiro comando é pdf.set_font
+            self.primeira_font = commands[0].startswith('set_font')
+        return self.primeira_font
+
     def execute_user_code(self, user_code: str) -> str:
         allowed_globals = {
             "lista": self.lista,
@@ -113,8 +135,12 @@ class PDFGenerator:
             "filtros": self.filtros,
             "set_font": self.set_font,
             "cell": self.cell,
-            "multicell": self.multicell
+            "multi_cell": self.multi_cell
         }
+
+        if not self.primeira_font:
+            if not self.is_first_command_set_font(user_code):
+                return "Erro ao executar o código: Adicione um set_font() no começo"
 
         try:
             exec(user_code, allowed_globals)

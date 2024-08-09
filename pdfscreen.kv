@@ -7,7 +7,7 @@
         BoxLayout:
             orientation: 'horizontal'
             BorderedBoxLayout:
-                padding: 5, 5
+                padding: dp(5), dp(5)
                 ScrollView:
                     size_hint: (0.70, 1)
                     do_scroll_x: True
@@ -30,34 +30,42 @@
             BoxLayout:
                 orientation: 'vertical'
                 size_hint: (0.30, 1)
-                padding: [5, 5, 5, 5]
+                padding: [dp(5), dp(5), dp(5), dp(5)]
                 pos_hint: {"center_y": 0.5}
                 BoxLayout:
                     orientation: 'vertical'
                     size_hint_y: None
+                    padding: [dp(2), dp(2), dp(2), dp(2)]
+                    height: dp(30)*4
                     Button:
                         text: 'Set Font'
                         on_release: root.show_set_font_popup()
                     Button:
                         text: 'Add Cell'
+                        id: add_cell
+                        disabled: True
                         on_release: root.show_add_cell_popup()
                     Button:
                         text: 'Add Multicell'
+                        id: multicell
+                        disabled: True
                         on_release: root.show_add_multicell_popup()
                     Button:
                         text: "Add código Python"
-                        on_release: root.show_config_code_screen()
+                        on_release: root.show_code_screen()
                 BoxLayout:
                     orientation: 'vertical'
                     size_hint_y: None
-                    height: 30
+                    padding: [dp(2), dp(2), dp(2), dp(2)]
+                    height: dp(30)
                     Button:
                         text: "Remover última adição"
                         on_release: root.remover()
                 BoxLayout:
                     orientation: 'vertical'
                     size_hint_y: None
-                    height: 30*3
+                    padding: [dp(2), dp(2), dp(2), dp(2)]
+                    height: dp(30)*4
                     Button:
                         text: "Estilos de PDF salvo"
                         on_release: root.pegar_pdf_popup()
@@ -66,7 +74,11 @@
                         on_release: root.pegar_pdf_padrao()
                     Button:
                         text: 'Salvar estilo de PDF'
+                        id: salvar
+                        disabled: True
                         on_release: root.show_style_save_popup()
                     Button:
                         text: 'Gerar PDF'
+                        id: gerar
+                        disabled: True
                         on_release: root.show_generate_popup()

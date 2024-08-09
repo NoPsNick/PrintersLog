@@ -1,7 +1,7 @@
 import datetime
-import \
-    os  # Importa a biblioteca os para interagir com o sistema operacional, como navegar em diretórios e manipular arquivos
+import os
 import re  # Importa a biblioteca re para utilizar expressões regulares para pesquisa e manipulação de strings
+from glob import glob
 
 from bs4 import BeautifulSoup  # Importa BeautifulSoup da biblioteca bs4 para analisar e manipular arquivos HTML
 
@@ -74,15 +74,18 @@ class Leitura:
         """
         Método para processar todos os arquivos HTML no diretório especificado.
         """
-        dados_completos = []  # Inicializa a lista para armazenar os dados de todos os arquivos
-        if not self.root.startswith("."):
-            self.root = "." + self.root
-        for root, dirs, files in os.walk(self.root):  # Itera sobre todos os arquivos no diretório e subdiretórios
-            for file in files:
-                if file.endswith('.htm') or file.endswith('.html'):  # Verifica se o arquivo tem extensão .htm ou .html
-                    filepath = os.path.join(root, file)  # Cria o caminho completo do arquivo
-                    dados = self._ler(filepath)  # Lê o arquivo e extrai os dados
-                    if dados:  # Se dados foram extraídos com sucesso
-                        dados_completos.extend(dados)  # Adiciona os dados à lista completa
+
+        arquivos_htm = glob(os.path.join(self.root, '*.htm'))
+        arquivos_html = glob(os.path.join(self.root, '*.html'))
+
+        # Combina as listas de arquivos .htm e .html
+        arquivos = arquivos_htm + arquivos_html
+
+        # Inicializa a lista para armazenar os dados de todos os arquivos
+        dados_completos = []
+        for filepath in arquivos:
+            dados = self._ler(filepath)  # Lê o arquivo e extrai os dados
+            if dados:  # Se dados foram extraídos com sucesso
+                dados_completos.extend(dados)  # Adiciona os dados à lista completa
 
         return dados_completos  # Retorna a lista completa de dados extraídos
