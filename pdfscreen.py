@@ -12,6 +12,7 @@ from kivy.uix.textinput import TextInput
 
 from configuration import Config
 from pdf_generator import PDFGenerator
+from visualdados import VisualDados
 
 Builder.load_file("pdfscreen.kv", encoding='latin-1')
 
@@ -22,16 +23,15 @@ class PDFScreen(Screen):
         super().__init__(**kw)
         self.botoes_to_enable_disable = []
         self.config = Config()
-        self.lista = []
-        self.filtro = []
-        self.pdf_generator = PDFGenerator(self.lista, self.filtro)
+        self.conteudo = {}
+        self.pdf_generator = PDFGenerator(self.conteudo)
 
-    def change(self, lista, filtro):
-        self.lista = lista
-        self.filtro = filtro
-        self.pdf_generator = PDFGenerator(self.lista, self.filtro)
+    def change(self, conteudo):
+        self.conteudo = {key: value for key, value in conteudo.items()}
+        self.pdf_generator = PDFGenerator(self.conteudo)
         self.botoes_to_enable_disable = [self.ids.add_cell, self.ids.multicell, self.ids.salvar,
                                          self.ids.gerar]
+        self.update_preview()
 
     def show_set_font_popup(self):
         content = BoxLayout(orientation='vertical')
@@ -149,10 +149,13 @@ class PDFScreen(Screen):
 
         for custom_pdf in custom_pdfs:
             for nome in custom_pdf:
+                button_del = Button(text='Remover PDF', size_hint_x=0.2)
+                button_del.bind(on_release=lambda instance, name=nome: self.deletar_pdf_popup(name))
                 line_box = BoxLayout(orientation='horizontal', size_hint_y=None, height=30)
-                label = Label(text=f"Nome: {nome}", size_hint_x=0.7)
-                button = Button(text='Get PDF', size_hint_x=0.3)
+                label = Label(text=f"Nome: {nome}", size_hint_x=0.6)
+                button = Button(text='Pegar PDF', size_hint_x=0.2)
                 button.bind(on_release=lambda instance, name=nome: self.close_pegar_pdf_popup(name))
+                line_box.add_widget(button_del)
                 line_box.add_widget(label)
                 line_box.add_widget(button)
                 box.add_widget(line_box)
@@ -171,6 +174,47 @@ class PDFScreen(Screen):
     def close_pegar_pdf_popup(self, nome):
         self.popup.dismiss()
         self.pdf_generator.get_custom(nome)
+        self.update_preview()
+
+    def deletar_pdf_popup(self, nome):
+        self.popup.dismiss()
+        content = BoxLayout(padding=10, orientation='vertical')
+        sv = ScrollView(size_hint=(1, 1), do_scroll_x=False, do_scroll_y=True, pos_hint={"center_y": 0.5})
+        visu = VisualDados()
+        conteudo = visu.pegar_pdf_por_nome(nome)
+        lista = [
+            f"{key}: {value}" if key != "python_code" else f"{key}:\n>>>{self.pdf_generator.formatar(value['code'])}"
+            for content in conteudo for key, value in content.items()]
+        message = "\n".join(lista)
+        msg_label = Label(
+            text=f"Você realmente deseja deletar o seguinte estilo de PDF {nome}(ESTA AÇÃO NÃO TEM RETORNO):\n{message}",
+            text_size=(self.width * 0.8, None),  # Define a largura do texto para que ele quebre automaticamente
+            size_hint_y=None,  # Para permitir ajuste dinâmico da altura
+            halign='left',
+            valign='top'
+        )
+        msg_label.bind(
+            width=lambda *x: msg_label.setter('text_size')(msg_label, (msg_label.width, None)),
+            texture_size=lambda *x: msg_label.setter('height')(msg_label, msg_label.texture_size[1])
+        )
+
+        button_box = BoxLayout(size_hint_y=None, height=40)
+        delete_button = Button(text='Deletar')
+        delete_button.bind(on_release=lambda instance, name=nome: self.del_pdf(nome))
+        close_button = Button(text='Fechar', on_release=self.go_back)
+        sv.add_widget(msg_label)
+        content.add_widget(sv)
+        button_box.add_widget(delete_button)
+        button_box.add_widget(close_button)
+        content.add_widget(button_box)
+
+        self.popup = Popup(title=f"Deletar estilo de PDF {nome}", content=content, size_hint=(0.8, 0.6))
+        self.popup.open()
+
+    def del_pdf(self, nome):
+        self.popup.dismiss()
+        visu = VisualDados()
+        visu.remover_pdf(nome)
         self.update_preview()
 
     def get_pdf(self, instance):
@@ -193,6 +237,8 @@ class PDFScreen(Screen):
 
     def generate_pdf(self, instance):
         filename = self.filename_input.text or "output.pdf"
+        if not filename.endswith('.pdf'):
+            filename += '.pdf'
         retorno = self.pdf_generator.generate_pdf(filename)
         self.popup.dismiss()
         if retorno["codigo"] == 200:
@@ -200,7 +246,7 @@ class PDFScreen(Screen):
         else:
             self.show_msg_popup("Error", f"{retorno['codigo']}, mensagem: {retorno['msg']}")
         conteudo = self.pdf_generator.contents
-        self.pdf_generator = PDFGenerator(self.lista, self.filtro)
+        self.pdf_generator = PDFGenerator(self.conteudo)
         self.pdf_generator.contents = conteudo
         self.update_preview()
 
@@ -271,7 +317,7 @@ class PDFScreen(Screen):
         if args[1].collide_point(*args[2].pos):
             Clipboard.copy("\n".join(self.pdf_generator.contet_to_copy()))
 
-    def show_msg_popup(self, type, message):
+    def show_msg_popup(self, tipo, message):
         content = BoxLayout(padding=10, orientation='vertical')
         sv = ScrollView(size_hint=(1, 1), do_scroll_x=False, do_scroll_y=True, pos_hint={"center_y": 0.5})
 
@@ -294,7 +340,7 @@ class PDFScreen(Screen):
         button_box.add_widget(close_button)
         content.add_widget(button_box)
 
-        self.popup = Popup(title=type, content=content, size_hint=(0.8, 0.6))
+        self.popup = Popup(title=tipo, content=content, size_hint=(0.8, 0.6))
         self.popup.open()
 
     def go_back(self, instance):

@@ -3,6 +3,7 @@ import calendar
 import datetime
 import re
 
+import pandas as pd
 from dateutil.rrule import rrule, MONTHLY
 from kivy.lang import Builder
 from kivy.properties import ObjectProperty, StringProperty
@@ -200,7 +201,7 @@ class SavedScreen(Screen):
         """Manipula o clique do botão para fazer o relatório dos dados em PDF."""
         if self.dados:
             screen = self.manager.get_screen("PDFScreen")
-            screen.change(self.dados, self.config.get_filter())
+            screen.change(conteudo={"lista": self.dados, "filtros": self.config.get_filter()})
             self.manager.push(screen.name)
 
     @staticmethod
@@ -241,7 +242,7 @@ class SavedScreen(Screen):
 
     def show_data(self):
         """Exibe os dados no RecycleView."""
-        self.recycleView.data = [dado.get_dictionary() for dado in self.dados]
+        self.recycleView.data = [dado.get_dictionary_to_show(self.config.get_data_format()) for dado in self.dados]
 
     def show_total(self):
         """Exibe os totais no TotalView."""
@@ -249,15 +250,27 @@ class SavedScreen(Screen):
 
     def _verify_month(self, month, verificar):
         """Verifica se o mês corresponde ao dado."""
-        mes_pego = datetime.datetime.strptime(verificar, self.config.get_data_format()).month
+        if isinstance(verificar, pd.Timestamp):
+            mes_pego = verificar.month
+        else:
+            # Caso seja um timestamp numérico ou outra forma
+            mes_pego = datetime.datetime.strptime(verificar, self.config.get_data_format()).month
         return mes_pego == month
 
-    def _verify_between_years(self, anos: list, ano: str):
+    def _verify_between_years(self, anos: list, ano):
         """Verifica se o ano está dentro do intervalo."""
-        ano_pego = datetime.datetime.strptime(ano, self.config.get_data_format()).date().year
+        if isinstance(ano, pd.Timestamp):
+            ano_pego = ano.year
+        else:
+            # Caso seja um timestamp numérico ou outra forma
+            ano_pego = datetime.datetime.strptime(ano, self.config.get_data_format()).date().year
         return anos[0] <= ano_pego <= anos[1]
 
-    def _verify_year(self, anos: list, ano: str):
+    def _verify_year(self, anos: list, ano):
         """Verifica se o ano corresponde ao dado."""
-        ano_pego = datetime.datetime.strptime(ano, self.config.get_data_format()).date().year
+        if isinstance(ano, pd.Timestamp):
+            ano_pego = ano.year
+        else:
+            # Caso seja um timestamp numérico ou outra forma
+            ano_pego = datetime.datetime.strptime(ano, self.config.get_data_format()).date().year
         return ano_pego == anos[0]

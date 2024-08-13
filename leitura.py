@@ -27,7 +27,7 @@ class Leitura:
 
     def _ler(self, filepath):
         """
-        Método estático responsável por ler e extrair dados de um único arquivo HTML.
+        Função responsável por ler e extrair dados de um único arquivo HTML.
         """
         try:
             with open(filepath, 'r', encoding='latin-1') as file:
@@ -72,7 +72,7 @@ class Leitura:
 
     def processar_arquivos(self):
         """
-        Método para processar todos os arquivos HTML no diretório especificado.
+        Função responsável em processar todos os arquivos HTML no diretório especificado.
         """
 
         arquivos_htm = glob(os.path.join(self.root, '*.htm'))

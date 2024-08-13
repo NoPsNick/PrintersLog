@@ -12,13 +12,12 @@ from visualdados import VisualDados
 
 
 class PDFGenerator:
-    def __init__(self, lista: list, filtros: list, orientation: Literal[
+    def __init__(self, conteudo: dict, orientation: Literal[
         "portrait", "p", "P", "landscape", "l", "L"] = "portrait",
                  unit: str = "pt",
                  format: Union[Literal["a3", "A3", "a4", "A4", "a5", "A5", "letter", "Letter", "legal", "Legal"], tuple[
                      float, float]] = "A4"):
-        self.lista = lista
-        self.filtros = filtros
+        self.conteudo = conteudo
         self.config = Config()
         self.formato_da_data = self.config.get_data_format()
         self.storage_manager = StorageManager()
@@ -123,7 +122,7 @@ class PDFGenerator:
 
     def execute_user_code(self, user_code: str) -> str:
         allowed_globals = {
-            "lista": self.lista,
+            "conteudo": self.conteudo,
             "math": math,
             "datetime": datetime,
             "formatar_datas": self._formatar_datas,
@@ -132,7 +131,6 @@ class PDFGenerator:
             "pegar_totais": self.get_totals,
             "pdf": self.pdf,
             "formato_da_data": self.formato_da_data,
-            "filtros": self.filtros,
             "set_font": self.set_font,
             "cell": self.cell,
             "multi_cell": self.multi_cell
@@ -147,55 +145,6 @@ class PDFGenerator:
             return "True"
         except Exception as e:
             return f"Erro ao executar o código: {e}"
-
-    def get_totals(self) -> tuple[dict[str, dict[str, int]] | None, dict[str, int] | None]:
-        if not self.lista:
-            return None, None
-
-        totals = {dado.principal: {dado.user: 0} for dado in self.lista}
-        total = {dado.user: 0 for dado in self.lista}
-
-        for dado in self.lista:
-            paginas = math.ceil(int(dado.paginas) / 2) if dado.duplex else int(dado.paginas)
-            total[dado.user] += paginas * int(dado.copias)
-            totals[dado.principal][dado.user] += paginas * int(dado.copias)
-
-        return totals, total
-
-    @staticmethod
-    def _truncate_text(pdf: FPDF, text: str, max_width: int) -> str:
-        max_width -= 5
-        ellipsis = "..."
-        text_width = pdf.get_string_width(text)
-        ellipsis_width = pdf.get_string_width(ellipsis)
-
-        if text_width <= max_width:
-            return text
-        else:
-            while text_width + ellipsis_width > max_width:
-                text = text[:-1]
-                text_width = pdf.get_string_width(text)
-            return text + ellipsis
-
-    def _calcular_periodo(self) -> tuple[str, str, int]:
-        datas_convertidas = sorted(set(
-            datetime.datetime.strptime(self.config.translate(data.data), self.formato_da_data) for data in self.lista))
-        primeira_data = datas_convertidas[0]
-        ultima_data = datas_convertidas[-1]
-        diferenca_dias = (ultima_data - primeira_data).days + 1
-
-        return primeira_data.strftime(self.formato_da_data), ultima_data.strftime(self.formato_da_data), diferenca_dias
-
-    def _formatar_datas(self) -> str:
-        datas = sorted(set(
-            (datetime.datetime.strptime(self.config.translate(data.data), self.formato_da_data)).strftime(
-                self.formato_da_data) for data in self.lista))
-        if not datas:
-            return ""
-        elif len(datas) == 1:
-            return datas[0]
-        else:
-            return ", ".join(datas[:-1]) + " e " + datas[-1]
 
     def run_user_code(self, code: str) -> str:
         result = self.execute_user_code(code)
@@ -249,7 +198,7 @@ class PDFGenerator:
         visu = VisualDados()
         custom_db = visu.pegar_pdf_por_nome(nome=nome)
         if custom_db:
-            self.contents = custom_db
+            self.contents.extend(custom_db)
             return True
         return False
 
@@ -261,3 +210,53 @@ class PDFGenerator:
     def remover(self):
         if self.contents:
             self.contents.pop()
+
+    def get_totals(self) -> tuple[dict[str, dict[str, int]] | None, dict[str, int] | None]:
+        if not self.conteudo['lista']:
+            return None, None
+
+        totals = {dado.principal: {dado.user: 0} for dado in self.conteudo['lista']}
+        total = {dado.user: 0 for dado in self.conteudo['lista']}
+
+        for dado in self.conteudo['lista']:
+            paginas = math.ceil(int(dado.paginas) / 2) if dado.duplex else int(dado.paginas)
+            total[dado.user] += paginas * int(dado.copias)
+            totals[dado.principal][dado.user] += paginas * int(dado.copias)
+
+        return totals, total
+
+    @staticmethod
+    def _truncate_text(pdf: FPDF, text: str, max_width: int) -> str:
+        max_width -= 5
+        ellipsis = "..."
+        text_width = pdf.get_string_width(text)
+        ellipsis_width = pdf.get_string_width(ellipsis)
+
+        if text_width <= max_width:
+            return text
+        else:
+            while text_width + ellipsis_width > max_width:
+                text = text[:-1]
+                text_width = pdf.get_string_width(text)
+            return text + ellipsis
+
+    def _calcular_periodo(self) -> tuple[str, str, int]:
+        datas_convertidas = sorted(set(
+            datetime.datetime.strptime(self.config.translate(data.data), self.formato_da_data) for data in
+            self.conteudo['lista']))
+        primeira_data = datas_convertidas[0]
+        ultima_data = datas_convertidas[-1]
+        diferenca_dias = (ultima_data - primeira_data).days + 1
+
+        return primeira_data.strftime(self.formato_da_data), ultima_data.strftime(self.formato_da_data), diferenca_dias
+
+    def _formatar_datas(self) -> str:
+        datas = sorted(set(
+            (datetime.datetime.strptime(self.config.translate(data.data), self.formato_da_data)).strftime(
+                self.formato_da_data) for data in self.conteudo['lista']))
+        if not datas:
+            return ""
+        elif len(datas) == 1:
+            return datas[0]
+        else:
+            return ", ".join(datas[:-1]) + " e " + datas[-1]

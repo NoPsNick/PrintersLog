@@ -3,11 +3,14 @@ import ast
 import os
 from glob import glob
 
+import numpy as np
 import pandas as pd
 from sqlalchemy import create_engine
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import sessionmaker
 
 from configuration import Config
-from models import Dados
+from models import Dados, Documento, CustomPDF, CustomPDFValue, Base
 
 
 class VisualDados:
@@ -17,14 +20,22 @@ class VisualDados:
         self._type = None
         self.db_url = 'sqlite:///./dbs/banco_de_dados.db'
         self.engine = create_engine(self.db_url)
+        self.Session = sessionmaker(bind=self.engine)
         self.data_format = Config().get_data_format()
+
+    def _create_session(self):
+        """Cria e retorna uma nova sessão do SQLAlchemy."""
+        return self.Session()
 
     def _validar(self, df: pd.DataFrame, tipo: str) -> bool:
         if isinstance(df, pd.DataFrame):
-            if (tipo == "dados" and df.shape[1] == 11) or (tipo == "pdfs" and df.shape[1] == 3):
+            if (tipo == "dados" and df.shape[1] == 12) or (tipo == "pdfs" and df.shape[1] == 4):
                 self._type = tipo
                 self._valid = True
                 self.dados = df
+                if self._type == 'dados':
+                    self.dados.data = pd.to_datetime(self.dados.data, format=self.data_format)
+                    self.dados.hora = pd.to_datetime(self.dados.hora, format="%H:%M:%S").dt.time
         else:
             self._type = None
             self._valid = False
@@ -38,41 +49,47 @@ class VisualDados:
             return self._validar(dados, "dados")
         return self._validar(self.dados, "dados")
 
-        # self.manipulate.data = pd.to_datetime(self.manipulate.data, format=self.data_format)
-        # self.manipulate.hora = pd.to_datetime(self.manipulate.hora, format="%H:%M:%S").dt.time
-        #
-        # self.manipulate['total'] = np.where(self.manipulate.duplex,
-        #                                     np.ceil(self.manipulate.paginas / 2) * self.manipulate.copias,
-        #                                     self.manipulate.paginas * self.manipulate.copias)
-        #
-        # self.data_shape = self.manipulate.shape
-        # self.nan_values = self.manipulate.isna().values
-        # self.duplicated_rows = self.manipulate[self.manipulate.duplicated()]
-        #
-        # self.manipulate['data_usuario'] = (self.manipulate.data.dt.strftime(self.data_format)
-        #                                    + ' - ' + self.manipulate.user)
+    def criar_relatorio(self):
+        if self._valid and self._type == "dados":
+            self.dados.data = pd.to_datetime(self.dados.data, format=self.data_format)
+            self.dados.hora = pd.to_datetime(self.dados.hora, format="%H:%M:%S").dt.time
+
+            self.dados['total'] = np.where(
+                self.dados.duplex,
+                np.ceil(self.dados.paginas / 2) * self.dados.copias,
+                self.dados.paginas * self.dados.copias
+            )
+
+            self.dados['data_usuario'] = (
+                    self.dados.data.dt.strftime(self.data_format) + ' - ' + self.dados.user
+            )
 
     def validate_dados(self) -> bool:
         if not isinstance(self.dados, pd.DataFrame):
-            # Converte lista de objetos Dados em DataFrame
             df = pd.DataFrame([dic.get_dictionary() for dic in self.dados])
             return self._validar(df, "dados")
         return self._validar(self.dados, "dados")
 
     def validate_custom_pdf(self, nome: str) -> bool:
         if not isinstance(self.dados, pd.DataFrame):
-            # Converte lista de dicionários em DataFrame
-            df = pd.DataFrame([{'nome': nome, 'tipo': tipo, 'valor': str(valor)}
-                               for dic in self.dados for tipo, valor in dic.items()])
+            df = pd.DataFrame([
+                {'id': None, 'nome': nome, 'tipo': tipo, 'valor': str(valor)}
+                for dic in self.dados for tipo, valor in dic.items()
+            ])
             return self._validar(df, "pdfs")
         return self._validar(self.dados, "pdfs")
 
     def dataframes_para_dicionarios(self) -> list[dict | None]:
         if self._valid and isinstance(self.dados, pd.DataFrame):
             if self._type == "pdfs":
-                return [{row.iloc[1]: dict(ast.literal_eval(row.iloc[2]))} for _, row in self.dados.iterrows()]
+                return [{row['tipo']: dict(ast.literal_eval(row['valor']))} for _, row in self.dados.iterrows()]
             elif self._type == "dados":
-                return [Dados(**row).get_dictionary() for _, row in self.dados.iterrows()]
+                copia = self.dados.copy(deep=True)
+                try:
+                    copia = copia.loc[:, copia.columns != 'id']
+                except KeyError:
+                    pass
+                return [Dados(**row).get_dictionary() for _, row in copia.iterrows()]
         return []
 
     def pegar_todos_os_nomes(self) -> list[str | None]:
@@ -81,10 +98,12 @@ class VisualDados:
 
     @staticmethod
     def create_combined_key(df: pd.DataFrame) -> pd.DataFrame:
-        return (df['principal'].astype(str) + '_' +
+        return (
+                df['principal'].astype(str) + '_' +
                 df['data'].astype(str) + '_' +
                 df['hora'].astype(str) + '_' +
-                df['user'].astype(str))
+                df['user'].astype(str)
+        )
 
     def pegar_documentos(self) -> list[dict | None]:
         self.dados = self.buscar_no_banco_de_dados("Documentos")
@@ -95,26 +114,89 @@ class VisualDados:
         pdfs = self.buscar_no_banco_de_dados("CustomPDFs")
         valores = self.buscar_no_banco_de_dados("CustomPDFsValues")
 
-        # Filtra o dataframe pdfs para obter as linhas onde a coluna 'nome' é igual ao nome fornecido
         pdf_filtrado = pdfs[pdfs['nome'] == nome]
-
-        # Filtra o dataframe valores para pegar apenas as linhas onde alguma coluna contém o valor de 'pdf_filtrado'
         df = valores[valores['nome'].isin(pdf_filtrado['nome'])]
-
-        self.dados = df
-        self._validar(self.dados, "pdfs")
+        self._validar(df, "pdfs")
         return self.dataframes_para_dicionarios()
 
     def buscar_no_banco_de_dados(self, table_name: str) -> pd.DataFrame:
-        with self.engine.connect() as connection:
+        Base.metadata.create_all(self.engine)
+        with self._create_session() as session:
             try:
-                return pd.read_sql_table(table_name, connection)
-            except ValueError:
-                return pd.DataFrame()
+                if table_name == 'CustomPDFs':
+                    retorno = session.query(CustomPDF).all()
+                elif table_name == 'CustomPDFsValues':
+                    retorno = session.query(CustomPDFValue).all()
+                elif table_name == 'Documentos':
+                    retorno = session.query(Documento).all()
+                else:
+                    raise ValueError(f"Tabela desconhecida: {table_name}")
+
+                data = [obj.__dict__ for obj in retorno]
+                for item in data:
+                    item.pop('_sa_instance_state', None)
+
+                df = pd.DataFrame(data)
+                return df
+
+            except SQLAlchemyError as e:
+                raise e
+            finally:
+                session.close()
 
     def insert_new_data(self, table_name, data):
-        with self.engine.connect() as connection:
-            data.to_sql(name=table_name, con=connection, if_exists='append', index=False)
+        dados = data.to_dict(orient='records')
+        Base.metadata.create_all(self.engine)
+        with self._create_session() as session:
+            try:
+                for record in dados:
+                    if table_name == 'CustomPDFs':
+                        adicao = CustomPDF(**record)
+                    elif table_name == 'CustomPDFsValues':
+                        adicao = CustomPDFValue(**record)
+                    elif table_name == 'Documentos':
+                        adicao = Documento(**record)
+                    else:
+                        raise ValueError(f"Tabela desconhecida: {table_name}")
+                    session.add(adicao)
+
+                session.commit()
+            except SQLAlchemyError:
+                session.rollback()
+            finally:
+                session.close()
+
+    def remover_pdf(self, nome):
+        with self._create_session() as session:
+            try:
+                # Primeiro remova os valores associados
+                values = session.query(CustomPDFValue).filter_by(nome=nome).all()
+                for value in values:
+                    session.delete(value)
+
+                # Agora remova o CustomPDF principal
+                pdf = session.query(CustomPDF).filter_by(nome=nome).first()
+                if pdf:
+                    session.delete(pdf)
+
+                session.commit()
+            except SQLAlchemyError as e:
+                session.rollback()
+                print(e)
+            finally:
+                session.close()
+
+    def remover_documento(self, principal):
+        with self._create_session() as session:
+            try:
+                documentos = session.query(Documento).filter_by(principal=principal).all()
+                for doc in documentos:
+                    session.delete(doc)
+                session.commit()
+            except SQLAlchemyError:
+                session.rollback()
+            finally:
+                session.close()
 
     def dados_to_db(self) -> bool:
         nome_da_tabela = "Documentos"
@@ -123,17 +205,15 @@ class VisualDados:
             return False
 
         existentes = self.buscar_no_banco_de_dados(nome_da_tabela)
-
         self.dados['chave_combinada'] = self.create_combined_key(self.dados)
+
         if not existentes.empty:
             existentes['chave_combinada'] = self.create_combined_key(existentes)
             novos_dados = self.dados[~self.dados['chave_combinada'].isin(existentes['chave_combinada'])].copy()
         else:
             novos_dados = self.dados.copy()
 
-        # Remover a coluna 'chave_combinada' antes de inserir os dados
         novos_dados.drop(columns=['chave_combinada'], inplace=True)
-
         self.insert_new_data(nome_da_tabela, novos_dados)
 
         return not novos_dados.empty
@@ -168,10 +248,4 @@ class VisualDados:
 
 
 if __name__ == '__main__':
-    # plt.figure(figsize=(12, 6))
-    # ax = sns.barplot(data=visu.dados,
-    #                  x='data_usuario',
-    #                  y='total')
-    #
-    # ax.set(xlabel='Data e Usuário', ylabel='Total')
     pass
