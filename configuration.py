@@ -1,8 +1,9 @@
 # -*- coding: latin-1 -*-
-import datetime
+import copy
 import json
 import os
 import re
+from datetime import datetime, timedelta
 
 
 class Config:
@@ -75,8 +76,8 @@ class Config:
                             "field}: {includes}{',' if includes and excludes else ''}{excludes}\"\n        if "
                             "includes or excludes:  # Adiciona campo apenas se h\u00e1 conte\u00fado a ser "
                             "adicionado\n            texto = f\"{texto}, {campo}\" if texto else campo\n    "
-                            "pdf.set_font(family=\"Times\", style=\"B\", size=5)\n    pdf.cell(w=0, h=10, "
-                            "txt=texto, border=1, ln=1)"
+                            "pdf.set_font(family=\"Times\", style=\"B\", size=5)\n    pdf.multi_cell(w=0, h=10, "
+                            "txt=texto, border=1)"
                 }
             }
         ]
@@ -102,11 +103,6 @@ class Config:
                 })
                 self._traduzir_inverso = config.get('_traduzir_inverso', {v.lower(): k.title()
                                                                           for k, v in self._traduzir.items()})
-                self._default_months = config.get('_default_months', '')
-                self._default_months_list = config.get('_default_months_list', [])
-                self._default_months_list_to_show = config.get('_default_months_list_to_show', [])
-                self._default_year = config.get('_default_year', datetime.date.today().year)
-                self._default_years_list = config.get('_default_years_list', [[self._default_year]])
                 self._tipo_de_db = config.get('_tipo_de_db', '')
                 self._printers_path = config.get('_printers_path', '')
                 self._filters = config.get('_filters', {})
@@ -129,11 +125,6 @@ class Config:
                 "dezembro": "December"
             }
             self._traduzir_inverso = {v.lower(): k.title() for k, v in self._traduzir.items()}
-            self._default_months = ', '.join(self._traduzir_inverso.values())
-            self._default_months_list = list(range(1, 13))
-            self._default_months_list_to_show = list(range(1, 13))
-            self._default_year = str(datetime.date.today().year)
-            self._default_years_list = [[int(self._default_year)]]
             self._tipo_de_db = "test_db"
             self._printers_path = ".\\printers\\"
             self._filters = {field: {"include": [], "exclude": []} for field in self.field_names}
@@ -147,11 +138,6 @@ class Config:
         config = {
             '_traduzir': self._traduzir,
             '_traduzir_inverso': self._traduzir_inverso,
-            '_default_months': self._default_months,
-            '_default_months_list': self._default_months_list,
-            '_default_months_list_to_show': self._default_months_list_to_show,
-            '_default_year': self._default_year,
-            '_default_years_list': self._default_years_list,
             '_tipo_de_db': self._tipo_de_db,
             '_printers_path': self._printers_path,
             '_filters': self._filters,
@@ -165,14 +151,14 @@ class Config:
     def alter_filter(self, new_filter: dict[str, dict[str, set | list]]):
         self._filters = new_filter
 
-    def translate(self, data):
+    def translate(self, data) -> str:
         """Traduz a data para o formato adequado."""
         return re.sub('|'.join(self._traduzir.keys()),
                       lambda x: self._traduzir[x.group().lower()],
                       data,
                       flags=re.IGNORECASE)
 
-    def translate_back(self, data):
+    def translate_back(self, data) -> str:
         """Traduz a data de volta para o formato original."""
         return re.sub('|'.join(self._traduzir_inverso.keys()),
                       lambda x: self._traduzir_inverso[x.group().lower()],
@@ -182,11 +168,6 @@ class Config:
     def get_configs(self) -> dict:
         return {
             "_traduzir": self._traduzir,
-            "_default_months": self._default_months,
-            "_default_months_list": self._default_months_list,
-            "_default_months_list_to_show": self._default_months_list_to_show,
-            "_default_year": self._default_year,
-            "_default_years_list": self._default_years_list,
             "_tipo_de_db": self._tipo_de_db,
             '_printers_path': self._printers_path,
             '_filters': self._filters,
@@ -196,6 +177,9 @@ class Config:
     def get_default_pdf_style(self) -> list:
         return self._default_pdf_style
 
+    def change_default_pdf_style(self, new_default_pdf_style):
+        self._default_pdf_style = new_default_pdf_style
+
     def alter_translations(self, new_translations: dict):
         self._traduzir = new_translations
         self._traduzir_inverso = {v.lower(): k.title() for k, v in self._traduzir.items()}
@@ -203,7 +187,45 @@ class Config:
     def get_filter(self) -> dict[str, dict[str, set | list]]:
         return self._filters
 
-    def get_data_format(self):
+    def _format_date_ranges(self, dates):
+        if not dates:
+            return []
+
+        dates = sorted([datetime.strptime(date, self._data_format) for date in dates])
+        grouped_dates = []
+        temp_group = [dates[0]]
+
+        for i in range(1, len(dates)):
+            if dates[i] == dates[i - 1] + timedelta(days=1):
+                temp_group.append(dates[i])
+            else:
+                grouped_dates.append(temp_group)
+                temp_group = [dates[i]]
+        grouped_dates.append(temp_group)
+
+        result = []
+        for group in grouped_dates:
+            if len(group) == 1:
+                result.append(f"{group[0].strftime(self._data_format)}")
+            else:
+                result.append(f"{group[0].strftime(self._data_format)} até {group[-1].strftime(self._data_format)}")
+
+        return result
+
+    def get_show_filter(self) -> dict[str, dict[str, set | list]]:
+        dicionario = copy.deepcopy(self._filters)
+        datas_include = dicionario['data']['include']
+        datas_exclude = dicionario['data']['exclude']
+
+        include_ranges = self._format_date_ranges(datas_include)
+        exclude_ranges = self._format_date_ranges(datas_exclude)
+
+        dicionario['data']['include'] = include_ranges
+        dicionario['data']['exclude'] = exclude_ranges
+
+        return dicionario
+
+    def get_data_format(self) -> str:
         return str(self._data_format)
 
     @staticmethod

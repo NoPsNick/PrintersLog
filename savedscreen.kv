@@ -1,46 +1,5 @@
-#:import utils kivy.utils
 #:import boxlayout_with_action_bar boxlayout_with_action_bar
-#:set color1 "#DD7835"
-#:set color2 "#D8D8D8"
-
-<AlignLabel@Label>:
-    text_size: self.size
-    font_size: dp(self.width/55) if dp(self.width/55) < dp(10) else dp(10)
-    halign: "left"
-    valign: "center"
-    canvas.before:
-        Color:
-            # rgb: utils.get_random_color()
-            rgba: 0, 0, 0, 0
-        Rectangle:
-            pos: self.pos
-            size: self.size
-
-<FitLabel@Label>:
-    size_hint: None, None
-    size: self.texture_size
-
-<Badge@FitLabel>:
-    color: 0, 0, 0, 1
-    bold: True
-    font_size: dp(10)
-    padding: dp(8), dp(3)
-    canvas.before:
-        Rectangle:
-            source: "images/badge.png"
-            pos: self.pos
-            size: self.size
-
-<TitleLabel@FitLabel>:
-    font_size: dp(22)
-    bold: True
-    padding: dp(16), dp(3)
-    canvas.before:
-        Color:
-            rgb: utils.get_color_from_hex(color1)
-        Rectangle:
-            pos: self.pos
-            size: self.size
+#:import bordered_boxlayout bordered_boxlayout
 
 <SavedScreen>:
     recycleView: recycleView
@@ -49,61 +8,17 @@
         title: "Dados"
         BoxLayout:
             orientation: "vertical"
+            size_hint: 1, 1
             BoxLayout:
-                size_hint: 1, 0.3
-                BoxLayout:
-                    orientation: "vertical"
-                    Label:
-                        id: info_text_months
-                        text_size: self.size
-                        size: self.texture_size
-                        halign: "left"
-                        valign: "center"
-                        font_size: dp(12)
-                        text: "Buscar o(s) seguinte(s) mês(es) (0 para buscas todos, ENTER para alterar): " + root.months
-                    TextInput:
-                        id: months_list
-                        text: root.months_list_to_show
-                        font_size: dp(12)
-                        multiline: False
-                        size_hint_x: 1
-                        height: dp(40)  # Altura fixa
-                        on_text_validate: root.on_data_validate(self)
-                    Label:
-                        id: info_text_years
-                        text_size: self.size
-                        size: self.texture_size
-                        halign: "left"
-                        valign: "center"
-                        font_size: dp(12)
-                        text: "Years to see (0 to all, ENTER to validate): " + root.years_to_show
-                    TextInput:
-                        id: years_list
-                        text: root.years_to_show
-                        font_size: dp(12)
-                        multiline: False
-                        size_hint_x: 1
-                        height: dp(40)  # Altura fixa
-                        on_text_validate: root.on_year_validate(self)
-                    BoxLayout:
-                        orientation: "horizontal"
-                        Button:
-                            text: "Pesquisar"
-                            height: dp(40)
-                            on_press: root.on_button_click()
-                        Button:
-                            text: "Pesquisar pelo Banco de Dados"
-                            height: dp(40)
-                            on_press: root.on_button_click_db()
-                        Button:
-                            text: "Filtros"
-                            height: dp(40)
-                            on_press: app.manager.push("FilterScreen")
-            BoxLayout:
+                padding: dp(5)
                 orientation: "horizontal"
-                size_hint_y: 0.65  # Ajuste o tamanho para que não ocupe muito espaço
-                BoxLayout:
+                size_hint_y: 0.8
+
+                BorderedBoxLayout:
+                    padding: dp(3)
                     orientation: "vertical"
+                    size_hint_x: 0.7
+
                     TitleLabel:
                         text: "Dados"
                     BoxLayout:
@@ -120,22 +35,39 @@
                                 spacing: dp(5)
                 BoxLayout:
                     orientation: "vertical"
-                    TitleLabel:
-                        text: "Totais"
+                    size_hint_x: 0.3
+                    BorderedBoxLayout:
+                        padding: dp(5)
+                        size_hint_y: 0.7
+                        orientation: "vertical"
+
+                        TitleLabel:
+                            text: "Totais"
+                        BoxLayout:
+                            padding: (0, dp(3), 0, 0)
+                            RecycleView:
+                                id: totalView
+                                viewclass: 'TotalWidget'
+                                RecycleBoxLayout:
+                                    default_size: None, dp(20)
+                                    default_size_hint: 1, None
+                                    size_hint_y: None
+                                    height: dp(self.minimum_height+1)
+                                    orientation: 'vertical'
+                                    spacing: dp(2)
                     BoxLayout:
-                        padding: dp(5), dp(5)
-                        RecycleView:
-                            id: totalView
-                            viewclass: 'TotalWidget'
-                            RecycleBoxLayout:
-                                default_size: None, dp(32)
-                                default_size_hint: 1, None
-                                size_hint_y: None
-                                height: dp(self.minimum_height)
-                                orientation: 'vertical'
-                                spacing: dp(5)
-        BoxLayout:
-            size_hint_y: 0.05
-            Button:
-                text: "Criar Relatório em PDF"
-                on_press: root.on_button_relatorio()
+                        padding: (dp(5), dp(5), 0, 0)
+                        size_hint_y: 0.3
+                        orientation: "vertical"
+
+                        Button:
+                            text: "Pesquisar"
+                            height: dp(40)
+                            on_release: root.on_button_click()
+                        Button:
+                            text: "Filtros"
+                            height: dp(40)
+                            on_release: app.manager.push("FilterScreen")
+                        Button:
+                            text: "Criar Relatório em PDF"
+                            on_release: root.on_button_relatorio()

@@ -9,8 +9,9 @@ from kivy.uix.screenmanager import Screen
 from backup import Backup
 from configuration import Config
 from leitura import Leitura
+from models import Dados
 from storage_manager import StorageManager
-from visualdados import VisualDados
+from visualdados import VisualDocumentos
 
 Builder.load_file("resultscreen.kv", encoding='latin-1')
 
@@ -63,9 +64,9 @@ class ResultScreen(Screen):
             self.msg_change()
             if not self.clicado:
                 self.show_data()
-                self.backup_button_csv.bind(on_press=self.csv)
-                self.backup_button_json.bind(on_press=self.json)
-                self.backup_button_bd.bind(on_press=self.bd)
+                self.backup_button_csv.bind(on_release=self.csv)
+                self.backup_button_json.bind(on_release=self.json)
+                self.backup_button_bd.bind(on_release=self.bd)
                 self.ids.boxlayout_principal.add_widget(self.BL)
                 self.clicado = True
             else:
@@ -75,7 +76,11 @@ class ResultScreen(Screen):
 
     def show_data(self):
         """Exibe os dados no RecycleView."""
-        self.recycleView.data = [dado.get_dictionary() for dado in self.dados]
+        self.recycleView.data = self._criar_dicionario()
+
+    def _criar_dicionario(self):
+        self.dados: list[Dados]
+        return [dado.get_dictionary_to_show() for dado in self.dados]
 
     def csv(self, widget):
         """Cria backup em CSV."""
@@ -89,7 +94,7 @@ class ResultScreen(Screen):
     def json(self, widget):
         """Cria backup em JSON."""
         if self.dados:
-            dados = [dado.get_dictionary() for dado in self.dados]
+            dados = self._criar_dicionario()
             StorageManager().save_data("dados", dados)
             self.msg_change("Backup em JSON criado com sucesso.", (0, 1, 0, .5))
         else:
@@ -99,7 +104,7 @@ class ResultScreen(Screen):
         """Cria backup no Banco de Dados."""
         modo = self.configs["_tipo_de_db"]
         if modo == "test_db" and self.dados:
-            visu = VisualDados(dados=self.dados)
+            visu = VisualDocumentos(dados=self.dados)
             enviado = visu.dados_to_db()
             if enviado:
                 self.msg_change("Backup salvo no Banco de Dados com sucesso.", (0, 1, 0, .5))

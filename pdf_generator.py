@@ -7,8 +7,9 @@ from typing import Literal, Union
 from fpdf import FPDF
 
 from configuration import Config
+from models import PDFs
 from storage_manager import StorageManager
-from visualdados import VisualDados
+from visualdados import VisualPDFs
 
 
 class PDFGenerator:
@@ -163,8 +164,10 @@ class PDFGenerator:
         return False
 
     def db_save(self, nome: str) -> bool:
-        visu = VisualDados(dados=self.contents)
-        retorno = visu.custom_pdf_to_db(nome=nome)
+        pdfs = [PDFs(nome=str(nome), tipo=str(chave), valor=str(valor)) for pdfs in self.contents
+                for chave, valor in pdfs.items()]
+        visu = VisualPDFs(dados=pdfs)
+        retorno = visu.custom_pdf_to_db()
         return retorno
 
     def get_customs(self) -> list[dict[str, list[dict]]]:
@@ -176,7 +179,7 @@ class PDFGenerator:
 
     @staticmethod
     def db_get() -> list:
-        visu = VisualDados()
+        visu = VisualPDFs()
         custom_pdfs = visu.pegar_todos_os_nomes()
         return custom_pdfs
 
@@ -195,10 +198,11 @@ class PDFGenerator:
             return False
 
     def get_custom_db(self, nome: str) -> bool:
-        visu = VisualDados()
+        visu = VisualPDFs()
         custom_db = visu.pegar_pdf_por_nome(nome=nome)
-        if custom_db:
-            self.contents.extend(custom_db)
+        conteudo = [pdf.get_dict_no_name_id() for pdf in custom_db]
+        if conteudo:
+            self.contents.extend(conteudo)
             return True
         return False
 

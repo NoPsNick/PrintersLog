@@ -12,7 +12,7 @@ from kivy.uix.textinput import TextInput
 
 from configuration import Config
 from pdf_generator import PDFGenerator
-from visualdados import VisualDados
+from visualdados import VisualPDFs
 
 Builder.load_file("pdfscreen.kv", encoding='latin-1')
 
@@ -180,14 +180,16 @@ class PDFScreen(Screen):
         self.popup.dismiss()
         content = BoxLayout(padding=10, orientation='vertical')
         sv = ScrollView(size_hint=(1, 1), do_scroll_x=False, do_scroll_y=True, pos_hint={"center_y": 0.5})
-        visu = VisualDados()
-        conteudo = visu.pegar_pdf_por_nome(nome)
+        visu = VisualPDFs()
+        banco = visu.pegar_pdf_por_nome(nome)
+        conteudo = [dado.get_dict_no_name_id() for dado in banco]
         lista = [
             f"{key}: {value}" if key != "python_code" else f"{key}:\n>>>{self.pdf_generator.formatar(value['code'])}"
             for content in conteudo for key, value in content.items()]
         message = "\n".join(lista)
         msg_label = Label(
-            text=f"Você realmente deseja deletar o seguinte estilo de PDF {nome}(ESTA AÇÃO NÃO TEM RETORNO):\n{message}",
+            text=f"(IMPOSSÍVEL REVERTER ESTA AÇÃO)Você realmente deseja deletar o seguinte estilo de PDF ({nome}):"
+                 f"\n{message}",
             text_size=(self.width * 0.8, None),  # Define a largura do texto para que ele quebre automaticamente
             size_hint_y=None,  # Para permitir ajuste dinâmico da altura
             halign='left',
@@ -213,17 +215,20 @@ class PDFScreen(Screen):
 
     def del_pdf(self, nome):
         self.popup.dismiss()
-        visu = VisualDados()
-        visu.remover_pdf(nome)
+        visu = VisualPDFs()
+        visu.del_pdf(nome)
         self.update_preview()
 
     def get_pdf(self, instance):
         nome = self.nome_do_pdf_salvo.text
-        pdf = self.pdf_generator.get_custom(nome)
-        self.popup.dismiss()
-        if not pdf:
-            self.show_msg_popup("Error", f"Não foi encontrado o estilo de PDF salvo com o nome: {nome}")
-        self.update_preview()
+        if nome:
+            pdf = self.pdf_generator.get_custom(nome)
+            self.popup.dismiss()
+            if not pdf:
+                self.show_msg_popup("Error", f"Não foi encontrado o estilo de PDF salvo com o nome: {nome}")
+            self.update_preview()
+        else:
+            self.show_msg_popup("Error", f"Por favor, insira um nome.")
 
     def show_generate_popup(self):
         content = BoxLayout(orientation='vertical')
@@ -262,10 +267,14 @@ class PDFScreen(Screen):
 
     def style_save(self, instance):
         nome = self.nome.text
-        save = self.pdf_generator.save(nome)
-        self.popup.dismiss()
-        if not save:
-            self.show_msg_popup("Error", "Já existe um PDF salvo com este nome.")
+        if nome:
+            save = self.pdf_generator.save(nome)
+            self.popup.dismiss()
+            if not save:
+                self.show_msg_popup("Error", "Já existe um PDF salvo com este nome.")
+        else:
+            self.popup.dismiss()
+            self.show_msg_popup("Error", "Escreva um nome para salvar o estilo de PDF.")
 
     def update_preview(self):
         preview = self.ids.preview

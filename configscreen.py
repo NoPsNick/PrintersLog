@@ -1,9 +1,6 @@
 # -*- coding: latin-1 -*-
-import calendar
 import datetime
-import re
 
-from dateutil.rrule import rrule, MONTHLY
 from kivy.lang import Builder
 from kivy.uix.screenmanager import Screen
 
@@ -39,8 +36,6 @@ class ConfigScreen(Screen):
 
     def _update_inputs(self):
         self.ids.printer_path_input.text = self.configs['_printers_path']
-        self.ids.year.text = str(self.configs['_default_year'])
-        self.ids.month.text = str(self.configs['_default_months_list_to_show']).replace("[", "").replace("]", "")
         self.ids.chave.text = ''
         self.ids.valor.text = ''
         self.dicionario = {}
@@ -77,54 +72,3 @@ class ConfigScreen(Screen):
         self.config.alter_translations(traducoes)
         self.config.save_config()
         self.get_configs()
-
-    def save_month_year(self):
-        self._save_months()
-        self._save_years()
-        self.config.save_config()
-        self.get_configs()
-
-    def _save_months(self):
-        month_text = self.ids.month.text.strip().replace(" ", "")
-        months_list_to_show = self._parse_months(month_text)
-        months = ", ".join(self.config.translate_back(calendar.month_name[num]) for num in months_list_to_show)
-        self.config._default_months = months
-        self.config._default_months_list = months_list_to_show
-        self.config._default_months_list_to_show = ", ".join(map(str, months_list_to_show))
-
-    def _parse_months(self, month_text):
-        month_text = month_text if month_text != "0" else "1-12"
-        month_ranges = re.split(r',', month_text)
-        months_set = set()
-        for range_text in month_ranges:
-            month_range = re.findall(r'\b\d+\b', range_text)
-            if len(month_range) == 2:
-                try:
-                    str_dt = datetime.date(int(self.ano), int(month_range[0]), 1)
-                    end_dt = datetime.date(int(self.ano), int(month_range[1]), 1)
-                except ValueError:
-                    str_dt = datetime.date(int(self.ano), int(month_range[0]), 1)
-                    end_dt = datetime.date(int(self.ano), int(12), 1)
-                lista = [dt.month for dt in rrule(MONTHLY, dtstart=str_dt, until=end_dt)]
-                months_set.update(lista)
-            elif len(month_range) == 1:
-                months_set.add(int(month_range[0]))
-        return sorted(months_set)
-
-    def _save_years(self):
-        years_list = self._parse_years()
-        self.config._default_year = ", ".join(map(str, years_list))
-        self.config._default_years_list = [[year] for year in years_list]
-
-    def _parse_years(self):
-        year_text = self.ids.year.text.strip().replace(" ", "")
-        year_ranges = re.split(",", year_text)
-        years_set = set()
-        for range_text in year_ranges:
-            year_range = re.findall(r'\b\d+\b', range_text)
-            if len(year_range) == 2:
-                start_year, end_year = map(int, year_range)
-                years_set.update(range(start_year, end_year + 1))
-            elif len(year_range) == 1:
-                years_set.add(int(year_range[0]))
-        return sorted(years_set)

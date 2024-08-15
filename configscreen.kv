@@ -1,11 +1,13 @@
-#:import utils kivy.utils
 #:import boxlayout_with_action_bar boxlayout_with_action_bar
+#:import bordered_boxlayout bordered_boxlayout
 
 <ConfigScreen>:
     BoxLayoutWithActionBar:
         title: "Configurações"
-        BoxLayout:
+        BorderedBoxLayout:
             orientation: 'vertical'
+            size_hint: 1, 0.25
+            padding: dp(5)
 
             # Traduzir Section
             Label:
@@ -13,7 +15,6 @@
                 size_hint: 1, 0.1
 
             BoxLayout:
-                id: teste
                 orientation: 'horizontal'
                 size_hint: 1, 0.2
                 TextInput:
@@ -33,56 +34,24 @@
                 Button:
                     text: 'Criar Nova Tradução'
                     size_hint: 0.33, 1
-                    on_press: root.add_translation()
+                    on_release: root.add_translation()
                 Button:
                     text: 'Salvar Traduções Criadas na Lista'
                     size_hint: 0.33, 1
-                    on_press: root.save_additions_on_translate()
+                    on_release: root.save_additions_on_translate()
                 Button:
                     text: 'Ver a Lista Para Editar'
                     size_hint: 0.33, 1
-                    on_press: app.manager.push("ListScreen")
-
-            # Mês e Ano Section
-            BoxLayout:
-                orientation: 'vertical'
-                size_hint: 1, 0.2
-
-                BoxLayout:
-                    orientation: 'horizontal'
-                    size_hint: 1, 0.5
-                    Label:
-                        text: 'Mês'
-                        size_hint: 0.3, 1
-                    TextInput:
-                        id: month
-                        multiline: False
-                        hint_text: 'Mês'
-                        size_hint: 0.7, 1
-
-                BoxLayout:
-                    orientation: 'horizontal'
-                    size_hint: 1, 0.5
-                    Label:
-                        text: 'Ano'
-                        size_hint: 0.3, 1
-                    TextInput:
-                        id: year
-                        multiline: False
-                        hint_text: 'Ano'
-                        size_hint: 0.7, 1
-        Button:
-            text: 'Salvar Mês e Ano'
-            size_hint: 1, 0.1
-            on_press: root.save_month_year()
+                    on_release: app.manager.push("ListScreen")
 
         # Tipo de Banco de Dados Section (Atualizada)
-        BoxLayout:
+        BorderedBoxLayout:
             orientation: 'horizontal'
-            size_hint: 1, 0.15
+            size_hint: 1, 0.25
+            padding: dp(5)
 
             Label:
-                text: 'Tipo de Banco de Dados'
+                text: 'Banco de Dados'
                 size_hint: 0.3, 1
 
             BoxLayout:
@@ -91,7 +60,7 @@
 
                 ToggleButton:
                     id: db_testdb
-                    text: 'TestDB'
+                    text: 'Ativado'
                     group: 'db_type'
                     size_hint_x: 0.5
                 ToggleButton:
@@ -103,22 +72,35 @@
             Button:
                 text: 'Salvar Tipo'
                 size_hint: 0.2, 1
-                on_press: root.save_db_type()
+                on_release: root.save_db_type()
 
         # Impressoras Section
-        BoxLayout:
+        BorderedBoxLayout:
             orientation: 'horizontal'
-            size_hint: 1, 0.15
+            size_hint: 1, 0.25
+            padding: dp(5)
 
             Label:
-                text: 'Caminho Principal das Impressoras'
+                text: 'Caminho Principal dos Logs'
                 size_hint: 0.3, 1
             TextInput:
                 id: printer_path_input
                 multiline: False
-                hint_text: 'Caminho das Impressoras'
+                hint_text: 'Caminho dos Logs das Impressoras'
                 size_hint: 0.5, 1
             Button:
                 text: 'Salvar Caminho'
                 size_hint: 0.2, 1
-                on_press: root.save_printers_path()
+                on_release: root.save_printers_path()
+
+        BorderedBoxLayout:
+            orientation: 'vertical'
+            size_hint: 1, 0.25
+            padding: dp(5)
+
+            Button:
+                text: 'Alterar Documentos'
+                size_hint: 1, 0.5
+            Button:
+                text: 'Alterar Estilo de PDF Padrão'
+                size_hint: 1, 0.5
