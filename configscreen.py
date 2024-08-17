@@ -56,17 +56,13 @@ class ConfigScreen(Screen):
         self.config.save_config()
         self.get_configs()
 
-    def add_translation(self):
+    def save_additions_on_translate(self):
         chave = self.ids.chave.text.strip().lower()
         valor = self.ids.valor.text.strip().title()
 
         if chave and valor:
             self.dicionario[chave] = valor
-        self.ids.chave.text = ''
-        self.ids.valor.text = ''
-        self.get_configs()
 
-    def save_additions_on_translate(self):
         traducoes = self.configs['_traduzir']
         traducoes.update(self.dicionario)
         self.config.alter_translations(traducoes)

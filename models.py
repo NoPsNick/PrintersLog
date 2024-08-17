@@ -36,10 +36,14 @@ class Dados:
     def get_dictionary(self) -> dict[str, str | int | Timestamp]:
         return self.__dict__
 
-    def get_dictionary_to_show(self, formato=data_format) -> dict[str, str | int]:
+    def get_dictionary_to_show(self, formato=data_format) -> dict[str, str]:
         if isinstance(self.data, datetime.date):
             self.data = self.data.strftime(formato)
             self.hora = self.hora.strftime("%H:%M:%S")
+        self.paginas = str(self.paginas)
+        self.copias = str(self.copias)
+        self.duplex = bool(self.duplex)
+        self.escala_de_cinza = bool(self.escala_de_cinza)
         return self.__dict__
 
 

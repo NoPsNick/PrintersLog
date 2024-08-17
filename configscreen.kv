@@ -32,10 +32,6 @@
                 orientation: 'horizontal'
                 size_hint: 1, 0.1
                 Button:
-                    text: 'Criar Nova Tradução'
-                    size_hint: 0.33, 1
-                    on_release: root.add_translation()
-                Button:
                     text: 'Salvar Traduções Criadas na Lista'
                     size_hint: 0.33, 1
                     on_release: root.save_additions_on_translate()
@@ -100,7 +96,5 @@
 
             Button:
                 text: 'Alterar Documentos'
-                size_hint: 1, 0.5
-            Button:
-                text: 'Alterar Estilo de PDF Padrão'
+                on_release: app.manager.push("DocumentoScreen")
                 size_hint: 1, 0.5

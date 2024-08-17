@@ -13,19 +13,30 @@ from visualdados import VisualPDFs
 
 
 class PDFGenerator:
-    def __init__(self, conteudo: dict, orientation: Literal[
-        "portrait", "p", "P", "landscape", "l", "L"] = "portrait",
+    def __init__(self, conteudo: dict,
+                 orientation: Literal["portrait", "p", "P", "landscape", "l", "L"] = "portrait",
                  unit: str = "pt",
                  format: Union[Literal["a3", "A3", "a4", "A4", "a5", "A5", "letter", "Letter", "legal", "Legal"], tuple[
-                     float, float]] = "A4"):
+                     float, float]] = "A4",
+                 allowed_globals: dict = None):
         self.conteudo = conteudo
         self.config = Config()
-        self.formato_da_data = self.config.get_data_format()
         self.storage_manager = StorageManager()
         self.pdf = FPDF(orientation=orientation, unit=unit, format=format)
         self.pdf.add_page()
         self.contents = []
         self.primeira_font = False
+        default_allowed = {
+            "conteudo": self.conteudo,
+            "math": math,
+            "datetime": datetime,
+            "pdf": self.pdf,
+            "set_font": self.set_font,
+            "cell": self.cell,
+            "multi_cell": self.multi_cell
+        }
+        default_allowed.update(allowed_globals or {})
+        self.allowed_globals = default_allowed
 
     def set_font(self, family: str = "Times", style: Literal[
         "B", "I", "U", "BU", "UB", "BI", "IB", "IU", "UI", "BIU", "BUI", "IBU", "IUB", "UBI", "UIB"] = "",
@@ -49,11 +60,16 @@ class PDFGenerator:
         for command in self.contents:
             for method, params in command.items():
                 if hasattr(self.pdf, method):
-                    method_func = getattr(self.pdf, method)
-                    if callable(method_func):
-                        method_func(**params)
-                    else:
-                        retorno = {"codigo": 400, "msg": "A solicitação é inválida ou malformada."}
+                    try:
+                        method_func = getattr(self.pdf, method)
+                        if callable(method_func):
+                            method_func(**params)
+                        else:
+                            retorno = {"codigo": 400, "msg": "A solicitação é inválida ou malformada."}
+                    except Exception as e:
+                        retorno = {"codigo": 406, "msg": f"O seguinte erro ocorreu durante a tentativa de usar a"
+                                                         f"função {str(method)} com os parâmetros {str(params)}:"
+                                                         f" {e}"}
                 elif method == "python_code":
                     run = self.run_user_code(params["code"])
                     if run != "True":
@@ -122,27 +138,12 @@ class PDFGenerator:
         return self.primeira_font
 
     def execute_user_code(self, user_code: str) -> str:
-        allowed_globals = {
-            "conteudo": self.conteudo,
-            "math": math,
-            "datetime": datetime,
-            "formatar_datas": self._formatar_datas,
-            "truncate_text": self._truncate_text,
-            "calcular_periodo": self._calcular_periodo,
-            "pegar_totais": self.get_totals,
-            "pdf": self.pdf,
-            "formato_da_data": self.formato_da_data,
-            "set_font": self.set_font,
-            "cell": self.cell,
-            "multi_cell": self.multi_cell
-        }
-
         if not self.primeira_font:
             if not self.is_first_command_set_font(user_code):
                 return "Erro ao executar o código: Adicione um set_font() no começo"
 
         try:
-            exec(user_code, allowed_globals)
+            exec(user_code, self.allowed_globals)
             return "True"
         except Exception as e:
             return f"Erro ao executar o código: {e}"
@@ -214,53 +215,3 @@ class PDFGenerator:
     def remover(self):
         if self.contents:
             self.contents.pop()
-
-    def get_totals(self) -> tuple[dict[str, dict[str, int]] | None, dict[str, int] | None]:
-        if not self.conteudo['lista']:
-            return None, None
-
-        totals = {dado.principal: {dado.user: 0} for dado in self.conteudo['lista']}
-        total = {dado.user: 0 for dado in self.conteudo['lista']}
-
-        for dado in self.conteudo['lista']:
-            paginas = math.ceil(int(dado.paginas) / 2) if dado.duplex else int(dado.paginas)
-            total[dado.user] += paginas * int(dado.copias)
-            totals[dado.principal][dado.user] += paginas * int(dado.copias)
-
-        return totals, total
-
-    @staticmethod
-    def _truncate_text(pdf: FPDF, text: str, max_width: int) -> str:
-        max_width -= 5
-        ellipsis = "..."
-        text_width = pdf.get_string_width(text)
-        ellipsis_width = pdf.get_string_width(ellipsis)
-
-        if text_width <= max_width:
-            return text
-        else:
-            while text_width + ellipsis_width > max_width:
-                text = text[:-1]
-                text_width = pdf.get_string_width(text)
-            return text + ellipsis
-
-    def _calcular_periodo(self) -> tuple[str, str, int]:
-        datas_convertidas = sorted(set(
-            datetime.datetime.strptime(self.config.translate(data.data), self.formato_da_data) for data in
-            self.conteudo['lista']))
-        primeira_data = datas_convertidas[0]
-        ultima_data = datas_convertidas[-1]
-        diferenca_dias = (ultima_data - primeira_data).days + 1
-
-        return primeira_data.strftime(self.formato_da_data), ultima_data.strftime(self.formato_da_data), diferenca_dias
-
-    def _formatar_datas(self) -> str:
-        datas = sorted(set(
-            (datetime.datetime.strptime(self.config.translate(data.data), self.formato_da_data)).strftime(
-                self.formato_da_data) for data in self.conteudo['lista']))
-        if not datas:
-            return ""
-        elif len(datas) == 1:
-            return datas[0]
-        else:
-            return ", ".join(datas[:-1]) + " e " + datas[-1]

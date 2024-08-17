@@ -1,11 +1,9 @@
 # -*- coding: latin-1 -*-
-# Importando bibliotecas e módulos necessários
 from kivy.app import App
 from kivy.properties import ObjectProperty, StringProperty, NumericProperty, BooleanProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.screenmanager import Screen
 
-# Importando módulos customizados
 from navigation_screen_manager import NavigationScreenManager
 
 

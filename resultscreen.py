@@ -112,4 +112,4 @@ class ResultScreen(Screen):
                 self.msg_change("Os dados já estão no banco de dados.", (255, 204, 0, .5))
         else:
             self.msg_change(f"Não foi possível salvar os dados no banco de dados, "
-                            f"pois ele se encontra no tipo de banco de dados: {modo}.")
+                            f"pois ele se encontra no estado: {modo}.")

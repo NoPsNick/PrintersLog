@@ -5,6 +5,7 @@ from glob import glob
 import numpy as np
 import pandas as pd
 
+from configuration import Config
 from genericvisualdados import GenericVisualDados
 from models import Dados, Documento, PDFs, CustomPDF, CustomPDFValue
 
@@ -17,13 +18,12 @@ class VisualDocumentos:
         ----------
         visual_dados : GenericVisualDados
             Instância da classe genérica de visualização de dados.
-        db_info : dict
-            Informações sobre as classes do banco de dados usadas.
     """
 
     def __init__(self, dados: list[dict | pd.DataFrame | Dados] | pd.DataFrame = None):
-        self.visual_dados = GenericVisualDados(Dados, shape=12, tipo="dados", dados=dados)
+        self.visual_dados = GenericVisualDados(Dados, shape=12, dados=dados)
         self.db_info = {'db_class': Documento}
+        self.data_format = Config().get_data_format()
 
     def criar_relatorio(self):
         if self.visual_dados.valid:
@@ -35,27 +35,41 @@ class VisualDocumentos:
 
             self.visual_dados.dados['data_usuario'] = (
                     self.visual_dados.dados.data.dt.strftime(
-                        self.visual_dados.data_format) + ' - ' + self.visual_dados.dados.user
+                        self.data_format) + ' - ' + self.visual_dados.dados.user
             )
 
-    def buscar_documentos(self):
+    def buscar_documentos(self) -> pd.DataFrame:
         return self.visual_dados.buscar_no_banco_de_dados(self.db_info['db_class'])
 
-    def pegar_documentos(self):
+    def pegar_documentos(self) -> list[Dados | None]:
         dados = self.buscar_documentos()
-        self.visual_dados.validar(dados, db_class=self.db_info['db_class'])
+        self.visual_dados.validar(dados)
+        return self.visual_dados.dataframes_para_classes()
+
+    def pegar_documentos_por_nome(self, principal) -> list[Dados | None]:
+        docs = self.buscar_documentos()
+        try:
+            documentos = docs[docs['principal'] == principal]
+            self.visual_dados.validar(documentos)
+        except KeyError:
+            return []
         return self.visual_dados.dataframes_para_classes()
 
     def insert_documentos(self, data: pd.DataFrame):
-        self.visual_dados.insert_new_data(data, db_class=self.db_info['db_class'])
+        data['data'] = pd.to_datetime(data['data'], format=self.data_format)
+        data['hora'] = pd.to_datetime(data['hora'], format="%H:%M:%S").dt.time
+        data['paginas'] = pd.to_numeric(data['paginas'])
+        data['copias'] = pd.to_numeric(data['copias'])
+        if self.db_info['db_class']().validar_dataframe(data):
+            self.visual_dados.insert_new_data(data, db_class=self.db_info['db_class'])
 
     def read_csvs(self) -> bool:
         if not isinstance(self.visual_dados.dados, pd.DataFrame):
             arquivos_csv = glob(os.path.join("./csvs/", "*.csv"))
             dataframes = [pd.read_csv(arquivo, encoding='latin-1') for arquivo in arquivos_csv]
             dados = pd.concat(dataframes, ignore_index=True)
-            return self.visual_dados.validar(dados, db_class=self.db_info['db_class'])
-        return self.visual_dados.validar(self.visual_dados.dados, db_class=self.db_info['db_class'])
+            return self.visual_dados.validar(dados)
+        return self.visual_dados.validar(self.visual_dados.dados)
 
     @staticmethod
     def create_combined_key(df: pd.DataFrame) -> pd.DataFrame:
@@ -70,12 +84,12 @@ class VisualDocumentos:
         self.visual_dados.remove_data(field_name="principal", value=principal, db_class=self.db_info['db_class'])
 
     def dados_to_db(self) -> bool:
-        self.visual_dados.validate(db_class=self.db_info['db_class'])
+        self.visual_dados.validate()
         if not self.visual_dados.valid:
             return False
         else:
             self.visual_dados.dados['data'] = pd.to_datetime(self.visual_dados.dados['data']
-                                                             , format=self.visual_dados.data_format)
+                                                             , format=self.data_format)
             self.visual_dados.dados['hora'] = pd.to_datetime(self.visual_dados.dados['hora'],
                                                              format="%H:%M:%S").dt.time
 
@@ -97,27 +111,35 @@ class VisualDocumentos:
 
 
 class VisualPDFs:
+    """
+            Classe responsável pela manipulação de dados de estilos de PDF.
+
+            Attributes:
+            ----------
+            visual_dados : GenericVisualDados
+                Instância da classe genérica de visualização de dados.
+    """
     def __init__(self, dados: list[dict | pd.DataFrame | PDFs] | pd.DataFrame = None):
-        self.visual_dados = GenericVisualDados(PDFs, shape=4, tipo="pdfs", dados=dados)
+        self.visual_dados = GenericVisualDados(PDFs, shape=4, dados=dados)
         self.db_info = {'nomes': CustomPDF, 'valores': CustomPDFValue}
 
-    def buscar_custom_pdfs_nomes(self):
+    def buscar_custom_pdfs_nomes(self) -> pd.DataFrame:
         return self.visual_dados.buscar_no_banco_de_dados(db_class=self.db_info['nomes'])
 
-    def buscar_custom_pdf_values(self):
+    def buscar_custom_pdf_values(self) -> pd.DataFrame:
         return self.visual_dados.buscar_no_banco_de_dados(db_class=self.db_info['valores'])
 
-    def pegar_todos_os_nomes(self):
+    def pegar_todos_os_nomes(self) -> list[str] | list:
         nomes = self.buscar_custom_pdfs_nomes()
-        return [row for _, row in nomes.iterrows()] if not nomes.empty else []
+        return [str(row) for _, row in nomes.iterrows()] if not nomes.empty else []
 
-    def pegar_pdf_por_nome(self, nome):
+    def pegar_pdf_por_nome(self, nome) -> list[PDFs] | list[None]:
         pdfs = self.buscar_custom_pdfs_nomes()
         valores = self.buscar_custom_pdf_values()
         try:
             pdf_filtrado = pdfs[pdfs['nome'] == nome]
             df = valores[valores['nome'].isin(pdf_filtrado['nome'])]
-            self.visual_dados.validar(df, db_class=self.db_info['valores'])
+            self.visual_dados.validar(df)
         except KeyError:
             return []
         return self.visual_dados.dataframes_para_classes()
@@ -135,7 +157,7 @@ class VisualPDFs:
         self.visual_dados.remove_data(field_name="nome", value=nome, db_class=self.db_info['nomes'])
 
     def custom_pdf_to_db(self) -> bool:
-        self.visual_dados.validate(db_class=self.db_info['valores'])
+        self.visual_dados.validate()
         if not self.visual_dados.valid:
             return False
 

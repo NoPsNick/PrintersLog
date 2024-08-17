@@ -2,6 +2,8 @@
 import ast
 import sqlite3
 
+from pandas import Timestamp
+
 from configuration import Config
 from models import Dados
 
@@ -86,7 +88,7 @@ class TestDB:
         else:
             return False
 
-    def buscar_documentos(self) -> list[Dados]:
+    def buscar_documentos(self) -> list[dict[str, str | int | Timestamp | Timestamp]]:
         arquivos = []
         self.cursor.execute("SELECT * FROM Documentos")
         for arquivo in self.cursor.fetchall():

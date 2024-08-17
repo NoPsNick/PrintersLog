@@ -3,6 +3,7 @@ import os
 import re  # Importa a biblioteca re para utilizar expressões regulares para pesquisa e manipulação de strings
 from glob import glob
 
+import pandas as pd
 from bs4 import BeautifulSoup  # Importa BeautifulSoup da biblioteca bs4 para analisar e manipular arquivos HTML
 
 from configuration import Config
@@ -70,6 +71,31 @@ class Leitura:
             data_list = []
         return data_list  # Retorna a lista de dados extraídos
 
+    def _ler_csv(self, filepath):
+        dt = pd.read_csv(filepath, encoding='latin-1', header=1, keep_default_na=False, na_filter=False,
+                         index_col=False)
+        lista = [row for row in dt.itertuples(index=False, name=None)]
+        dados = []
+        for item in lista:
+            data, hora = item[0].split()
+            date_str = datetime.datetime.strptime(data, '%Y-%m-%d').date(
+            ).strftime(self.config.get_data_format())
+            date = date_str
+            time = hora
+            user = item[1].strip()
+            pages = str(item[2]).strip()
+            copies = str(item[3]).strip()
+            print_queue = item[4].strip()
+            document = ",".join([item[5].strip(), item[7].strip(), item[8].strip(), item[9].strip(), item[10].strip()])
+            station = item[6].strip()
+            duplex = item[11].strip() != 'NOT DUPLEX'
+            grayscale = item[
+                            12].strip() != 'NOT GRAYSCALE'
+            dados.append(Dados(os.path.basename(filepath), date, time, user, pages, copies, print_queue,
+                               document, station, duplex, grayscale))
+        return dados
+
+
     def processar_arquivos(self):
         """
         Função responsável em processar todos os arquivos HTML no diretório especificado.
@@ -77,6 +103,7 @@ class Leitura:
 
         arquivos_htm = glob(os.path.join(self.root, '*.htm'))
         arquivos_html = glob(os.path.join(self.root, '*.html'))
+        arquivos_csv = glob(os.path.join(self.root, '*.csv'))
 
         # Combina as listas de arquivos .htm e .html
         arquivos = arquivos_htm + arquivos_html
@@ -88,4 +115,13 @@ class Leitura:
             if dados:  # Se dados foram extraídos com sucesso
                 dados_completos.extend(dados)  # Adiciona os dados à lista completa
 
+        for filepath in arquivos_csv:
+            dados = self._ler_csv(filepath)
+            if dados:
+                dados_completos.extend(dados)
+
         return dados_completos  # Retorna a lista completa de dados extraídos
+
+
+if __name__ == '__main__':
+    Leitura().processar_arquivos()

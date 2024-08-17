@@ -84,37 +84,34 @@ class SavedScreen(Screen):
         """Manipula o clique do botão para fazer o relatório dos dados em PDF."""
         if self.dados:
             screen = self.manager.get_screen("PDFScreen")
-            screen.change(conteudo={"lista": self.dados, "filtros": self.config.get_show_filter()})
+            screen.alterar_pdf_generator(conteudo={"lista": self.dados, "filtros": self.config.get_show_filter()})
             self.manager.push(screen.name)
 
-    def _deve_remover(self, dado: Dados):
+    def _deve_remover(self, dado: Dados) -> bool:
         """Determina se um dado deve ser removido com base no filtro."""
         filtro = self.config.get_filter()
+
         for field, rules in filtro.items():
+            valor_atributo = str(getattr(dado, field))
             include_set = set(rules.get("include", []))
             exclude_set = set(rules.get("exclude", []))
 
-            valor_atributo = str(getattr(dado, field))
+            if valor_atributo in exclude_set or (include_set and valor_atributo not in include_set):
+                return True
 
-            # Se 'include' estiver vazio, incluir todos exceto os 'exclude'
-            if not include_set:
-                if valor_atributo in exclude_set:
-                    return True
-            else:
-                if valor_atributo not in include_set or valor_atributo in exclude_set:
-                    return True
         return False
 
     def _filtro(self, dados: list[Dados]) -> list[Dados]:
-        dados_removidos = [dado for dado in dados if self._deve_remover(dado)]
+        """Filtra os dados removendo aqueles que não atendem aos critérios."""
+        dados_filtrados = []
 
-        # Dados não removidos
-        dados_nao_removidos = [dado for dado in dados if dado not in dados_removidos]
-        for dado in dados_nao_removidos:
-            dado.paginas = str(dado.paginas)
-            dado.copias = str(dado.copias)
+        for dado in dados:
+            if not self._deve_remover(dado):
+                dado.paginas = str(dado.paginas)
+                dado.copias = str(dado.copias)
+                dados_filtrados.append(dado)
 
-        return dados_nao_removidos
+        return dados_filtrados
 
     def show_data(self):
         """Exibe os dados no RecycleView."""

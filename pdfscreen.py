@@ -1,4 +1,8 @@
 # -*- coding: latin-1 -*-
+import datetime
+import math
+
+from fpdf import FPDF
 from kivy.core.clipboard import Clipboard
 from kivy.lang import Builder
 from kivy.metrics import dp
@@ -23,12 +27,21 @@ class PDFScreen(Screen):
         super().__init__(**kw)
         self.botoes_to_enable_disable = []
         self.config = Config()
+        self.formato_da_data = self.config.get_data_format()
         self.conteudo = {}
-        self.pdf_generator = PDFGenerator(self.conteudo)
+        self.pdf_generator = None
 
-    def change(self, conteudo):
-        self.conteudo = {key: value for key, value in conteudo.items()}
-        self.pdf_generator = PDFGenerator(self.conteudo)
+    def alterar_pdf_generator(self, conteudo, contents=None):
+        self.conteudo = conteudo
+        allowed_globals = {
+            "formatar_datas": self._formatar_datas,
+            "truncate_text": self._truncate_text,
+            "calcular_periodo": self._calcular_periodo,
+            "pegar_totais": self.get_totals,
+            "formato_da_data": self.formato_da_data,
+        }
+        self.pdf_generator = PDFGenerator(conteudo=self.conteudo, allowed_globals=allowed_globals)
+        self.pdf_generator.contents = contents or []
         self.botoes_to_enable_disable = [self.ids.add_cell, self.ids.multicell, self.ids.salvar,
                                          self.ids.gerar]
         self.update_preview()
@@ -138,7 +151,7 @@ class PDFScreen(Screen):
         self.update_preview()
 
     def pegar_pdf_popup(self):
-        content = BoxLayout(padding=dp(10), orientation='vertical')
+        content = BoxLayout(padding=dp(5), orientation='vertical')
 
         sv = ScrollView(size_hint=(1, 1), do_scroll_x=False, do_scroll_y=True, pos_hint={"center_y": 0.5})
 
@@ -151,8 +164,8 @@ class PDFScreen(Screen):
             for nome in custom_pdf:
                 button_del = Button(text='Remover PDF', size_hint_x=0.2)
                 button_del.bind(on_release=lambda instance, name=nome: self.deletar_pdf_popup(name))
-                line_box = BoxLayout(orientation='horizontal', size_hint_y=None, height=30)
-                label = Label(text=f"Nome: {nome}", size_hint_x=0.6)
+                line_box = BoxLayout(orientation='horizontal', size_hint_y=None, height=dp(30))
+                label = Label(text=f"Nome: {nome}", size_hint_x=0.2)
                 button = Button(text='Pegar PDF', size_hint_x=0.2)
                 button.bind(on_release=lambda instance, name=nome: self.close_pegar_pdf_popup(name))
                 line_box.add_widget(button_del)
@@ -163,8 +176,8 @@ class PDFScreen(Screen):
         sv.add_widget(box)
         content.add_widget(sv)
 
-        self.nome_do_pdf_salvo = TextInput(hint_text='Nome do estilo de PDF', multiline=False)
-        save_button = Button(text='Buscar estilo de PDF', on_release=self.get_pdf)
+        self.nome_do_pdf_salvo = TextInput(hint_text='Nome do estilo de PDF', multiline=False, size_hint_y=0.2)
+        save_button = Button(text='Buscar estilo de PDF', size_hint_y=0.2, on_release=self.get_pdf)
         content.add_widget(self.nome_do_pdf_salvo)
         content.add_widget(save_button)
 
@@ -188,7 +201,7 @@ class PDFScreen(Screen):
             for content in conteudo for key, value in content.items()]
         message = "\n".join(lista)
         msg_label = Label(
-            text=f"(IMPOSSÍVEL REVERTER ESTA AÇÃO)Você realmente deseja deletar o seguinte estilo de PDF ({nome}):"
+            text=f"(NÃO É POSSÍVEL REVERTER ESTA AÇÃO)Você realmente deseja deletar o seguinte estilo de PDF ({nome}):"
                  f"\n{message}",
             text_size=(self.width * 0.8, None),  # Define a largura do texto para que ele quebre automaticamente
             size_hint_y=None,  # Para permitir ajuste dinâmico da altura
@@ -210,7 +223,7 @@ class PDFScreen(Screen):
         button_box.add_widget(close_button)
         content.add_widget(button_box)
 
-        self.popup = Popup(title=f"Deletar estilo de PDF {nome}", content=content, size_hint=(0.8, 0.6))
+        self.popup = Popup(title=f"Deletar estilo de PDF: {nome}", content=content, size_hint=(0.8, 0.6))
         self.popup.open()
 
     def del_pdf(self, nome):
@@ -250,9 +263,12 @@ class PDFScreen(Screen):
             self.show_msg_popup("Criado", f"Seu PDF foi criado com sucesso com o nome {filename}")
         else:
             self.show_msg_popup("Error", f"{retorno['codigo']}, mensagem: {retorno['msg']}")
-        conteudo = self.pdf_generator.contents
-        self.pdf_generator = PDFGenerator(self.conteudo)
-        self.pdf_generator.contents = conteudo
+
+        # Reiniciar classe do PDF, para que possa gerar novos PDFs.
+        conteudo = self.pdf_generator.conteudo
+        contents = self.pdf_generator.contents
+        self.alterar_pdf_generator(conteudo=conteudo, contents=contents)
+
         self.update_preview()
 
     def show_style_save_popup(self):
@@ -353,4 +369,55 @@ class PDFScreen(Screen):
         self.popup.open()
 
     def go_back(self, instance):
-        self.popup.dismiss()
+        if self.popup:
+            self.popup.dismiss()
+
+    def get_totals(self) -> tuple[dict[str, dict[str, int]] | None, dict[str, int] | None]:
+        if not self.conteudo['lista']:
+            return None, None
+
+        totals = {dado.principal: {dado.user: 0} for dado in self.conteudo['lista']}
+        total = {dado.user: 0 for dado in self.conteudo['lista']}
+
+        for dado in self.conteudo['lista']:
+            paginas = math.ceil(int(dado.paginas) / 2) if dado.duplex else int(dado.paginas)
+            total[dado.user] += paginas * int(dado.copias)
+            totals[dado.principal][dado.user] += paginas * int(dado.copias)
+
+        return totals, total
+
+    @staticmethod
+    def _truncate_text(pdf: FPDF, text: str, max_width: int) -> str:
+        max_width -= 5
+        ellipsis = "..."
+        text_width = pdf.get_string_width(text)
+        ellipsis_width = pdf.get_string_width(ellipsis)
+
+        if text_width <= max_width:
+            return text
+        else:
+            while text_width + ellipsis_width > max_width:
+                text = text[:-1]
+                text_width = pdf.get_string_width(text)
+            return text + ellipsis
+
+    def _calcular_periodo(self) -> tuple[str, str, int]:
+        datas_convertidas = sorted(set(
+            datetime.datetime.strptime(self.config.translate(data.data), self.formato_da_data) for data in
+            self.conteudo['lista']))
+        primeira_data = datas_convertidas[0]
+        ultima_data = datas_convertidas[-1]
+        diferenca_dias = (ultima_data - primeira_data).days + 1
+
+        return primeira_data.strftime(self.formato_da_data), ultima_data.strftime(self.formato_da_data), diferenca_dias
+
+    def _formatar_datas(self) -> str:
+        datas = sorted(set(
+            (datetime.datetime.strptime(self.config.translate(data.data), self.formato_da_data)).strftime(
+                self.formato_da_data) for data in self.conteudo['lista']))
+        if not datas:
+            return ""
+        elif len(datas) == 1:
+            return datas[0]
+        else:
+            return ", ".join(datas[:-1]) + " e " + datas[-1]
