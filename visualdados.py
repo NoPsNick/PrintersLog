@@ -2,7 +2,6 @@
 import os
 from glob import glob
 
-import numpy as np
 import pandas as pd
 
 from configuration import Config
@@ -12,10 +11,11 @@ from models import Dados, Documento, PDFs, CustomPDF, CustomPDFValue
 
 class VisualDocumentos:
     """
-        Classe responsável pela manipulação de dados de documentos.
+        Classe responsável pela manipulação de dados do tipo Dados.
 
         Attributes:
         ----------
+        dados : Dados que serão manuseados/alterados/visualizados no formato de Dados, dict e ou DataFrame do pandas.
         visual_dados : GenericVisualDados
             Instância da classe genérica de visualização de dados.
     """
@@ -25,20 +25,21 @@ class VisualDocumentos:
         self.db_info = {'db_class': Documento}
         self.data_format = Config().get_data_format()
 
-    def criar_relatorio(self):
-        if self.visual_dados.valid:
-            self.visual_dados.dados['total'] = np.where(
-                self.visual_dados.dados.duplex,
-                np.ceil(self.visual_dados.dados.paginas / 2) * self.visual_dados.dados.copias,
-                self.visual_dados.dados.paginas * self.visual_dados.dados.copias
-            )
-
-            self.visual_dados.dados['data_usuario'] = (
-                    self.visual_dados.dados.data.dt.strftime(
-                        self.data_format) + ' - ' + self.visual_dados.dados.user
-            )
+    # def criar_relatorio(self):
+    #     if self.visual_dados.valid:
+    #         self.visual_dados.dados['total'] = np.where(
+    #             self.visual_dados.dados.duplex,
+    #             np.ceil(self.visual_dados.dados.paginas / 2) * self.visual_dados.dados.copias,
+    #             self.visual_dados.dados.paginas * self.visual_dados.dados.copias
+    #         )
+    #
+    #         self.visual_dados.dados['data_usuario'] = (
+    #                 self.visual_dados.dados.data.dt.strftime(
+    #                 self.data_format) + ' - ' + self.visual_dados.dados.user
+    #         )
 
     def buscar_documentos(self) -> pd.DataFrame:
+
         return self.visual_dados.buscar_no_banco_de_dados(self.db_info['db_class'])
 
     def pegar_documentos(self) -> list[Dados | None]:
@@ -112,10 +113,11 @@ class VisualDocumentos:
 
 class VisualPDFs:
     """
-            Classe responsável pela manipulação de dados de estilos de PDF.
+            Classe responsável pela manipulação de dados do tipo PDF.
 
             Attributes:
             ----------
+            dados : Dados que serão manuseados/alterados/visualizados no formato de PDFs, dict e ou DataFrame do pandas.
             visual_dados : GenericVisualDados
                 Instância da classe genérica de visualização de dados.
     """

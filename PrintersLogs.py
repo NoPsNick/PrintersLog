@@ -37,7 +37,7 @@ class MainMenu(Screen):
     pass
 
 
-class Printers(App):
+class PrintersLogs(App):
     """Aplicação principal."""
 
     manager = ObjectProperty(None)
@@ -49,4 +49,4 @@ class Printers(App):
 
 # Executa a aplicação
 if __name__ == '__main__':
-    Printers().run()
+    PrintersLogs().run()
