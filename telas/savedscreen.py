@@ -9,7 +9,7 @@ from models import Dados
 from storage_manager import StorageManager
 from visualdados import VisualDocumentos
 
-Builder.load_file("savedscreen.kv", encoding='latin-1')
+Builder.load_file("./telas/savedscreen.kv", encoding='latin-1')
 
 
 class SavedScreen(Screen):

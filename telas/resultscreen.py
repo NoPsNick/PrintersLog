@@ -13,7 +13,7 @@ from models import Dados
 from storage_manager import StorageManager
 from visualdados import VisualDocumentos
 
-Builder.load_file("resultscreen.kv", encoding='latin-1')
+Builder.load_file("./telas/resultscreen.kv", encoding='latin-1')
 
 
 class ResultScreen(Screen):

@@ -19,6 +19,3 @@ class NavigationScreenManager(ScreenManager):
 
     def get_screen_teste(self, name):
         return self.get_screen(name)
-
-    def update_list(self):
-        pass

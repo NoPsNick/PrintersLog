@@ -13,7 +13,7 @@ from bordered_boxlayout import BorderedBoxLayout
 from configuration import Config
 from visualdados import VisualDocumentos
 
-Builder.load_file("documentoscreen.kv", encoding='latin-1')
+Builder.load_file("./telas/documentoscreen.kv", encoding='latin-1')
 
 
 class DocWidget(RecycleDataViewBehavior, BorderedBoxLayout):

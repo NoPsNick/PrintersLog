@@ -6,7 +6,7 @@ from kivy.uix.screenmanager import Screen
 
 from configuration import Config
 
-Builder.load_file("configscreen.kv", encoding='latin-1')
+Builder.load_file("./telas/configscreen.kv", encoding='latin-1')
 
 # Constantes
 DB_TYPES = {'TestDB': 'test_db', 'Desativado': 'disabled'}

@@ -18,7 +18,7 @@ from configuration import Config
 from pdf_generator import PDFGenerator
 from visualdados import VisualPDFs
 
-Builder.load_file("pdfscreen.kv", encoding='latin-1')
+Builder.load_file("./telas/pdfscreen.kv", encoding='latin-1')
 
 
 class PDFScreen(Screen):

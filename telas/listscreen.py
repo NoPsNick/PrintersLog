@@ -10,7 +10,7 @@ from kivy.uix.screenmanager import Screen
 from bordered_boxlayout import BorderedBoxLayout
 from configuration import Config
 
-Builder.load_file("listscreen.kv", encoding='latin-1')
+Builder.load_file("./telas/listscreen.kv", encoding='latin-1')
 
 
 class ListScreen(Screen):
