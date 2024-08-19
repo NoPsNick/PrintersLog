@@ -7,6 +7,9 @@ from datetime import datetime, timedelta
 
 
 class Config:
+    """
+    Classe para configuração do aplicativo principal.
+    """
     field_names = ["data", "user", "impressora", "est", "duplex", "escala_de_cinza"]
 
     def __init__(self, json_file='./jsons/config.json'):
@@ -83,7 +86,11 @@ class Config:
         ]
         self.read_configs()
 
-    def read_configs(self):
+    def read_configs(self) -> None:
+        """
+        Ler o documento 'cofing.json' e extraír suas informações de configurações do aplicativo, caso ele não exista,
+        setar as configurações padrões e salva-las usando a função 'save_configs'.
+        """
         try:
             with open(self.json_file, 'r') as file:
                 config = json.load(file)
@@ -134,7 +141,11 @@ class Config:
             self._default_pdf_style = self.estilo_padrao
             self.save_config()
 
-    def save_config(self):
+    def save_config(self) -> None:
+        """
+        Salvar os parâmetros da classe no arquivo 'config.json', em caso dele não existir, ele será criado através da
+        função 'directory_check'.
+        """
         config = {
             '_traduzir': self._traduzir,
             '_traduzir_inverso': self._traduzir_inverso,
@@ -148,24 +159,41 @@ class Config:
         with open(self.json_file, 'w') as file:
             json.dump(config, file, indent=4)
 
-    def alter_filter(self, new_filter: dict[str, dict[str, set | list]]):
+    def alter_filter(self, new_filter: dict[str, dict[str, set | list]]) -> None:
+        """
+        Altera os filtros da configuração.
+        :param new_filter: Dicionário contendo os filtros.
+        """
         self._filters = new_filter
 
     def translate(self, data) -> str:
-        """Traduz a data para o formato adequado."""
+        """
+        Traduz a data para o formato adequado.
+        :param data: Data que será traduzida.
+        :return: Data traduzida.
+        """
         return re.sub('|'.join(self._traduzir.keys()),
                       lambda x: self._traduzir[x.group().lower()],
                       data,
                       flags=re.IGNORECASE)
 
     def translate_back(self, data) -> str:
-        """Traduz a data de volta para o formato original."""
+        """
+        Traduz a data de volta para o formato original.
+        :param data: Data que já foi traduzida.
+        :return: Data no formato original.
+        """
         return re.sub('|'.join(self._traduzir_inverso.keys()),
                       lambda x: self._traduzir_inverso[x.group().lower()],
                       data,
                       flags=re.IGNORECASE)
 
     def get_configs(self) -> dict:
+        """
+        Retorna os parâmetros da classe.
+        :return: retorna o dicionário para traduções, o tipo do banco de dados, o caminho padrão dos logs para leitura,
+        os filtros, e o formato padrão de data.
+        """
         return {
             "_traduzir": self._traduzir,
             "_tipo_de_db": self._tipo_de_db,
@@ -175,19 +203,34 @@ class Config:
         }
 
     def get_default_pdf_style(self) -> list:
+        """
+        Retorna os estilo de PDF padrão.
+        :return: Uma lista contendo vários dicionário para montagem do estilo de PDF padrão.
+        """
         return self._default_pdf_style
 
-    def change_default_pdf_style(self, new_default_pdf_style):
-        self._default_pdf_style = new_default_pdf_style
-
-    def alter_translations(self, new_translations: dict):
+    def alter_translations(self, new_translations: dict) -> None:
+        """
+        AVISO! NÃO UTILIZAR CASO NÃO NECESSÁRIO, POIS AFETA A APLICAÇÃO INTEIRA.
+        Altera o dicionário de traduções para caso esteja ocorrendo problemas de localização.
+        :param new_translations: Dicionário novo de traduções.
+        """
         self._traduzir = new_translations
         self._traduzir_inverso = {v.lower(): k.title() for k, v in self._traduzir.items()}
 
     def get_filter(self) -> dict[str, dict[str, set | list]]:
+        """
+        Pegar os filtros. Include seriam todos que você deseja pegar e os Exclude os que NÃO quer pegar.
+        :return: Dicionário de Include e Exclude de cada filtro.
+        """
         return self._filters
 
-    def _format_date_ranges(self, dates):
+    def _format_date_ranges(self, dates: dict[str, dict[str, set | list]]) -> list[str]:
+        """
+        Recebe o filtro das datas Include ou Exclude e o retorna compactado.
+        :param dates: Dicionário contendo o Include ou Exclude das datas para compactar-lo.
+        :return: Lista de strings.
+        """
         if not dates:
             return []
 
@@ -213,6 +256,10 @@ class Config:
         return result
 
     def get_show_filter(self) -> dict[str, dict[str, set | list]]:
+        """
+        Devolve todos os dicionários, porém com o das datas compactadas.
+        :return: Dicionário com os filtros da data compactados.
+        """
         dicionario = copy.deepcopy(self._filters)
         datas_include = dicionario['data']['include']
         datas_exclude = dicionario['data']['exclude']
@@ -229,10 +276,17 @@ class Config:
         return str(self._data_format)
 
     @staticmethod
-    def directory_check(directory):
+    def directory_check(directory) -> bool:
+        """
+        Irá checar se existe o diretório, irá criá-lo caso não exista,
+        :param directory: Caminho do diretório(arquivo, pasta...), será criado caso não exista.
+        :return: bool(True): Caso o diretório exista; bool(False): Caso o diretório não exista.
+        """
         directory = os.path.dirname(directory)
         if not os.path.exists(directory):
             os.makedirs(directory)
+            return False
+        return True
 
 
 if __name__ == '__main__':

@@ -15,7 +15,9 @@ from kivy.uix.scrollview import ScrollView
 from kivy.uix.textinput import TextInput
 
 from configuration import Config
+from models import PDFs
 from pdf_generator import PDFGenerator
+from storage_manager import StorageManager
 from visualdados import VisualPDFs
 
 Builder.load_file("./telas/pdfscreen.kv", encoding='latin-1')
@@ -26,12 +28,14 @@ class PDFScreen(Screen):
     def __init__(self, **kw):
         super().__init__(**kw)
         self.botoes_to_enable_disable = []
+        self.storage_manager = StorageManager()
         self.config = Config()
         self.formato_da_data = self.config.get_data_format()
         self.conteudo = {}
         self.pdf_generator = None
 
     def alterar_pdf_generator(self, conteudo, contents=None):
+        self.config = Config()
         self.conteudo = conteudo
         allowed_globals = {
             "formatar_datas": self._formatar_datas,
@@ -61,7 +65,7 @@ class PDFScreen(Screen):
         self.popup.open()
 
     def add_font(self, instance):
-        family = self.family_input.text or "Times"
+        family = self.family_input.text or "Arial"
         style = self.style_input.text or "B"
         size = int(self.size_input.text) if self.size_input.text else 12
 
@@ -155,7 +159,7 @@ class PDFScreen(Screen):
 
         sv = ScrollView(size_hint=(1, 1), do_scroll_x=False, do_scroll_y=True, pos_hint={"center_y": 0.5})
 
-        custom_pdfs = self.pdf_generator.get_customs()
+        custom_pdfs = self.get_customs()
 
         box = BoxLayout(orientation='vertical', size_hint_y=None)
         box.bind(minimum_height=box.setter('height'))
@@ -186,16 +190,22 @@ class PDFScreen(Screen):
 
     def close_pegar_pdf_popup(self, nome):
         self.popup.dismiss()
-        self.pdf_generator.get_custom(nome)
+        self.get_custom(nome)
         self.update_preview()
 
     def deletar_pdf_popup(self, nome):
         self.popup.dismiss()
         content = BoxLayout(padding=10, orientation='vertical')
         sv = ScrollView(size_hint=(1, 1), do_scroll_x=False, do_scroll_y=True, pos_hint={"center_y": 0.5})
-        visu = VisualPDFs()
-        banco = visu.pegar_pdf_por_nome(nome)
-        conteudo = [dado.get_dict_no_name_id() for dado in banco]
+        if self.config.get_configs().get(
+                "_tipo_de_db") == "test_db":
+            visu = VisualPDFs()
+            banco = visu.pegar_pdf_por_nome(nome)
+            conteudo = [dado.get_dict_no_name_id() for dado in banco]
+        else:
+            all_pdfs = {key: value for dicionario in self.json_get() for key, value in dicionario.items()}
+            conteudo = all_pdfs[nome]
+
         lista = [
             f"{key}: {value}" if key != "python_code" else f"{key}:\n>>>{self.pdf_generator.formatar(value['code'])}"
             for content in conteudo for key, value in content.items()]
@@ -226,16 +236,10 @@ class PDFScreen(Screen):
         self.popup = Popup(title=f"Deletar estilo de PDF: {nome}", content=content, size_hint=(0.8, 0.6))
         self.popup.open()
 
-    def del_pdf(self, nome):
-        self.popup.dismiss()
-        visu = VisualPDFs()
-        visu.del_pdf(nome)
-        self.update_preview()
-
     def get_pdf(self, instance):
         nome = self.nome_do_pdf_salvo.text
         if nome:
-            pdf = self.pdf_generator.get_custom(nome)
+            pdf = self.get_custom(nome)
             self.popup.dismiss()
             if not pdf:
                 self.show_msg_popup("Error", f"Não foi encontrado o estilo de PDF salvo com o nome: {nome}")
@@ -284,7 +288,7 @@ class PDFScreen(Screen):
     def style_save(self, instance):
         nome = self.nome.text
         if nome:
-            save = self.pdf_generator.save(nome)
+            save = self.save(nome)
             self.popup.dismiss()
             if not save:
                 self.show_msg_popup("Error", "Já existe um PDF salvo com este nome.")
@@ -421,3 +425,134 @@ class PDFScreen(Screen):
             return datas[0]
         else:
             return ", ".join(datas[:-1]) + " e " + datas[-1]
+
+    def save(self, nome: str) -> bool:
+        """
+        Salva ou em formato json ou no banco de dados o estilo de PDF.
+        :param nome: Nome em formato de string para o salvamento do estilo de PDF.
+        :return: Função de salvamento.
+        """
+        return self.json_save(nome) if self.config.get_configs().get(
+            "_tipo_de_db") != "test_db" else self.db_save(nome)
+
+    def json_save(self, nome: str) -> bool:
+        """
+        Salva o estilo de PDF caso não tenha algum com o nome recebido em formato JSON.
+        :param nome: Nome em formato de string para o salvamento do estilo de PDF.
+        :return: bool(True) caso salve em formato JSON; bool(False) caso exista algum com o nome.
+        """
+        if not self.check_if_name(nome):
+            custom_pdfs = self.json_get()
+            custom_pdfs.append({nome: self.pdf_generator.contents})
+            self.storage_manager.save_data("custom_pdfs", custom_pdfs)
+            return True
+        return False
+
+    def db_save(self, nome: str) -> bool:
+        """
+        Salva o estilo de PDF caso não tenha algum com o nome recebido no Banco de Dados.
+        :param nome: Nome em formato de string para o salvamento do estilo de PDF.
+        :return: bool(True) caso efetue o salvamento no Banco de Dados; bool(False) caso exista algum com o nome.
+        """
+        pdfs = [PDFs(nome=str(nome), tipo=str(chave), valor=str(valor)) for pdfs in self.pdf_generator.contents
+                for chave, valor in pdfs.items()]
+        visu = VisualPDFs(dados=pdfs)
+        retorno = visu.custom_pdf_to_db()
+        return retorno
+
+    def get_customs(self) -> list[dict[str, list[dict]]]:
+        """
+        Faz a busca de todos os estilos de PDF ou em JSON ou no Banco de Dados.
+        :return: Lista dos estilos de PDF.
+        """
+        return self.json_get() if self.config.get_configs().get(
+            "_tipo_de_db") != "test_db" else self.db_get()
+
+    def json_get(self) -> list:
+        """
+        Pegar todos os estilos de PDF salvos em JSON.
+        :return: Lista de estilos de PDF salvos em JSON.
+        """
+        lista = [pdf for pdf in self.storage_manager.load_data("custom_pdfs")] or []
+        all_pdfs = [{key.lower(): value} for dicionario in lista for key, value in dicionario.items()]
+        return all_pdfs
+
+    @staticmethod
+    def db_get() -> list:
+        """
+        Pegar todos os estilos de PDF salvos no Banco de Dados.
+        :return: Lista de estilso de PDF salvos no banco de Dados.
+        """
+        visu = VisualPDFs()
+        custom_pdfs = visu.pegar_todos_os_nomes() or []
+        return custom_pdfs
+
+    def get_custom(self, nome: str) -> bool:
+        """
+        Retorna se foi possível pegar o estilo de PDF salvo pelo nome ou em JSON ou no Banco de Dados.
+        :param nome: Nome em formato de string do estilo de PDF salvo.
+        :return: bool(True) caso foi possível obter o estilo de PDF; bool(False) caso não tenha sido possível obter o
+        estilo de PDF.
+        """
+        return self.get_custom_json(nome) if self.config.get_configs().get("_tipo_de_db"
+                                                                           ) != "test_db" else self.get_custom_db(nome)
+
+    def get_custom_json(self, nome: str) -> bool:
+        """
+        Pega o estilo de PDF salvo pelo nome no formato JSON e o adiciona no conteúdo de criação de PDF do gerador de
+        PDF.
+        :param nome: Nome em formato de string do estilo de PDF salvo.
+        :return: bool(True) caso foi possível obter o estilo de PDF; bool(False) caso não tenha sido possível obter o
+        estilo de PDF.
+        """
+        custom_pdfs = self.json_get()
+        nome = nome.lower()
+        if custom_pdfs and self.check_if_name(nome):
+            all_pdfs = {key.lower(): value for dicionario in custom_pdfs for key, value in dicionario.items()}
+            self.pdf_generator.contents.extend(all_pdfs[nome])
+            return True
+        else:
+            return False
+
+    def get_custom_db(self, nome: str) -> bool:
+        """
+        Pega o estilo de PDF salvo pelo nome no Banco de Dados e o adiciona no conteúdo de criação de PDF do gerador de
+        PDF.
+        :param nome: Nome em formato de string do estilo de PDF salvo.
+        :return: bool(True) caso foi possível obter o estilo de PDF; bool(False) caso não tenha sido possível obter o
+        estilo de PDF.
+        """
+        visu = VisualPDFs()
+        custom_db = visu.pegar_pdf_por_nome(nome=nome)
+        conteudo = [pdf.get_dict_no_name_id() for pdf in custom_db]
+        if conteudo:
+            self.pdf_generator.contents.extend(conteudo)
+            return True
+        return False
+
+    def check_if_name(self, nome: str) -> bool:
+        """
+        Verifica se já existe um PDF salvo em formato JSON.
+        :param nome: Nome em formato de string do estilo de PDF salvo.
+        :return: bool(True) caso exista este nome salvo; bool(False) caso não exista este nome salvo.
+        """
+        custom_pdfs = self.json_get()
+        existing_names = {key.lower() for dicionario in custom_pdfs for key in dicionario}
+        return nome.lower() in existing_names
+
+    def del_pdf(self, nome):
+        self.popup.dismiss()
+        self.del_pdf_json(nome) if self.config.get_configs().get(
+            "_tipo_de_db") != "test_db" else self.del_pdf_db(nome)
+        self.update_preview()
+
+    @staticmethod
+    def del_pdf_db(nome):
+        visu = VisualPDFs()
+        visu.del_pdf(nome)
+
+    def del_pdf_json(self, nome):
+        custom_pdfs = self.json_get()
+        nome = nome.lower()
+        all_pdfs = [dicionario for dicionario in custom_pdfs for key in dicionario.keys() if key != nome]
+        self.storage_manager.save_data("custom_pdfs", all_pdfs)

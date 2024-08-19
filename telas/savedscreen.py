@@ -73,7 +73,7 @@ class SavedScreen(Screen):
         if self._tipo_de_db == "test_db":
             dados = VisualDocumentos().pegar_documentos()
         else:
-            dados = StorageManager().load_data("dados")
+            dados = [Dados(**dado) for dado in StorageManager().load_data("dados")]
 
         if not dados:
             self._initialize_data()

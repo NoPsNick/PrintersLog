@@ -22,8 +22,12 @@ class Dados:
                  id=None):
         self.id = id
         self.principal = principal
-        self.data = data
-        self.hora = hora
+        if isinstance(data, datetime.date):
+            self.data = data.strftime(data_format)
+            self.hora = hora.strftime("%H:%M:%S")
+        else:
+            self.data = data
+            self.hora = hora
         self.user = user
         self.paginas = paginas
         self.copias = copias
@@ -36,10 +40,7 @@ class Dados:
     def get_dictionary(self) -> dict[str, str | int | Timestamp]:
         return self.__dict__
 
-    def get_dictionary_to_show(self, formato=data_format) -> dict[str, str]:
-        if isinstance(self.data, datetime.date):
-            self.data = self.data.strftime(formato)
-            self.hora = self.hora.strftime("%H:%M:%S")
+    def get_dictionary_to_show(self) -> dict[str, str]:
         self.paginas = str(self.paginas)
         self.copias = str(self.copias)
         self.duplex = bool(self.duplex)
@@ -54,7 +55,7 @@ class PDFs:
         self.tipo = tipo
         self.valor = valor
 
-    def get_dictionary(self):
+    def get_dictionary(self) -> dict[str, any]:
         return self.__dict__
 
     def get_dict_no_name_id(self):

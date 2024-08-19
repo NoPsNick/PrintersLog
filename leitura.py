@@ -26,10 +26,15 @@ class Leitura:
         self.root = root if root else self.configs.get(
             '_printers_path')  # Inicializa a classe com o diretório especificado (ou o padrão)
 
-    def _ler(self, filepath):
+    def _ler(self, filepath) -> list[Dados]:
         """
         Função responsável por ler e extrair dados de um único arquivo HTML.
+        :param filepath: Caminho do arquivo que será lido.
+        :return: Lista dos dados extraídos.
         """
+        if filepath.endswith('.csv'):
+            return self._ler_csv(filepath)
+
         try:
             with open(filepath, 'r', encoding='latin-1') as file:
                 content = file.read()  # Lê o conteúdo do arquivo HTML
@@ -71,7 +76,12 @@ class Leitura:
             data_list = []
         return data_list  # Retorna a lista de dados extraídos
 
-    def _ler_csv(self, filepath):
+    def _ler_csv(self, filepath) -> list[Dados]:
+        """
+        Função responsável por ler e extrair dados de um único arquivo CSV.
+        :param filepath: Caminho do arquivo que será lido.
+        :return: Lista dos dados extraídos.
+        """
         dt = pd.read_csv(filepath, encoding='latin-1', header=1, keep_default_na=False, na_filter=False,
                          index_col=False)
         lista = [row for row in dt.itertuples(index=False, name=None)]
@@ -95,10 +105,10 @@ class Leitura:
                                document, station, duplex, grayscale))
         return dados
 
-
-    def processar_arquivos(self):
+    def processar_arquivos(self) -> list[Dados]:
         """
-        Função responsável em processar todos os arquivos HTML no diretório especificado.
+        Função responsável em processar todos os arquivos HTML e CSV no diretório especificado.
+        :return: Lista de todos os dados extraídos em formato da classe Dados.
         """
 
         arquivos_htm = glob(os.path.join(self.root, '*.htm'))
@@ -106,7 +116,7 @@ class Leitura:
         arquivos_csv = glob(os.path.join(self.root, '*.csv'))
 
         # Combina as listas de arquivos .htm e .html
-        arquivos = arquivos_htm + arquivos_html
+        arquivos = arquivos_htm + arquivos_html + arquivos_csv
 
         # Inicializa a lista para armazenar os dados de todos os arquivos
         dados_completos = []
@@ -115,13 +125,8 @@ class Leitura:
             if dados:  # Se dados foram extraídos com sucesso
                 dados_completos.extend(dados)  # Adiciona os dados à lista completa
 
-        for filepath in arquivos_csv:
-            dados = self._ler_csv(filepath)
-            if dados:
-                dados_completos.extend(dados)
-
         return dados_completos  # Retorna a lista completa de dados extraídos
 
 
 if __name__ == '__main__':
-    Leitura().processar_arquivos()
+    pass
