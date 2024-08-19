@@ -1,11 +1,9 @@
 # -*- coding: latin-1 -*-
-# Importando bibliotecas e módulos necessários
 from kivy.app import App
 from kivy.properties import ObjectProperty, StringProperty, NumericProperty, BooleanProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.screenmanager import Screen
 
-# Importando módulos customizados
 from navigation_screen_manager import NavigationScreenManager
 
 
@@ -39,7 +37,7 @@ class MainMenu(Screen):
     pass
 
 
-class Printers(App):
+class PrintersLogs(App):
     """Aplicação principal."""
 
     manager = ObjectProperty(None)
@@ -51,4 +49,4 @@ class Printers(App):
 
 # Executa a aplicação
 if __name__ == '__main__':
-    Printers().run()
+    PrintersLogs().run()

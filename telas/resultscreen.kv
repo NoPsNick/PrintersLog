@@ -1,38 +1,4 @@
-#:import utils kivy.utils
 #:import boxlayout_with_action_bar boxlayout_with_action_bar
-#:set color1 "#DD7835"
-#:set color2 "#D8D8D8"
-
-<ResultWidget>:
-    BoxLayout:
-        id: result_id
-        size_hint_max_x: root.width
-        size_hint_min_x: dp(300)
-        orientation: "vertical"
-        BoxLayout:
-            FitLabel:
-                font_size: dp(14)
-                bold: True
-                text: root.principal + " " + root.user + " PÁGINAS: " + str(root.paginas) + " CÓPIAS: " + str(root.copias)
-            Badge:
-                text: "DUPLEX" if root.duplex else ""
-            Badge:
-                text: "CINZA" if root.escala_de_cinza else ""
-        AlignLabel:
-            text: "DATA: " + root.data + " HORÁRIO: " + root.hora + " IMPRESSORA: " + root.impressora +" ARQUIVO: " + root.arquivo + " ESTAÇÃO: " + root.est
-            color: utils.get_color_from_hex(color2)
-
-<TotalWidget>:
-    BoxLayout:
-        id: total_id
-        size_hint_max_x: root.width/2
-        size_hint_min_x: dp(300)
-        orientation: "vertical"
-        BoxLayout:
-            FitLabel:
-                font_size: dp(14)
-                bold: True
-                text: root.user + root.arquivo + ": " + str(root.total)
 
 <ResultScreen>:
     recycleView: recycleView
@@ -57,7 +23,7 @@
                     on_text_validate: root.on_printers_root_validate(self)
                 Button:
                     text: "Results"
-                    on_press: root.result()
+                    on_release: root.result()
             TitleLabel:
                 text: "Dados"
             BoxLayout:
@@ -78,6 +44,7 @@
                 text: root.msg_str
                 size_hint: 1, None
                 height: dp(30) if len(root.msg_str) > 0 else 0
+                color: (0, 0, 0, 1)
                 font_size: dp(12)
                 bold: True
                 canvas.before:

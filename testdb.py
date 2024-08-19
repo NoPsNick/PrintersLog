@@ -2,6 +2,8 @@
 import ast
 import sqlite3
 
+from pandas import Timestamp
+
 from configuration import Config
 from models import Dados
 
@@ -17,30 +19,30 @@ class TestDB:
     def _create_tables(self):
         self.cursor.execute("""
             CREATE TABLE IF NOT EXISTS Documentos (
-                Principal TEXT,
-                Data DATE,
-                Hora TIME,
-                User TEXT,
-                Paginas INTEGER,
-                Copias INTEGER,
-                Impressora TEXT,
-                Arquivo TEXT,
-                Est TEXT,
-                Duplex BOOLEAN,
-                Escala_de_cinza BOOLEAN
+                principal TEXT,
+                data DATE,
+                hora TIME,
+                user TEXT,
+                paginas INTEGER,
+                copias INTEGER,
+                impressora TEXT,
+                arquivo TEXT,
+                est TEXT,
+                duplex BOOLEAN,
+                escala_de_cinza BOOLEAN
             )
         """)
         self.cursor.execute("""
             CREATE TABLE IF NOT EXISTS CustomPDFs (
-                Nome TEXT PRIMARY KEY
+                nome TEXT PRIMARY KEY
             )
         """)
         self.cursor.execute("""
             CREATE TABLE IF NOT EXISTS CustomPDFsValues (
-                Nome TEXT,
-                Tipo TEXT,
-                Valor TEXT,
-                FOREIGN KEY (Nome) REFERENCES CustomPDFs (Nome)
+                nome TEXT,
+                tipo TEXT,
+                valor TEXT,
+                FOREIGN KEY (nome) REFERENCES CustomPDFs (nome)
             )
         """)
         self.con.commit()
@@ -86,7 +88,7 @@ class TestDB:
         else:
             return False
 
-    def buscar_documentos(self) -> list[Dados]:
+    def buscar_documentos(self) -> list[dict[str, str | int | Timestamp | Timestamp]]:
         arquivos = []
         self.cursor.execute("SELECT * FROM Documentos")
         for arquivo in self.cursor.fetchall():
@@ -118,6 +120,4 @@ class TestDB:
 
 
 if __name__ == "__main__":
-    db = TestDB('./dbs/banco_de_dados.db')
-
-    print(db.obter_valores_por_nome('teste'))
+    pass

@@ -1,18 +1,96 @@
 # -*- coding: latin-1 -*-
-import datetime
+import copy
 import json
 import os
 import re
+from datetime import datetime, timedelta
 
 
 class Config:
+    """
+    Classe para configuração do aplicativo principal.
+    """
     field_names = ["data", "user", "impressora", "est", "duplex", "escala_de_cinza"]
 
     def __init__(self, json_file='./jsons/config.json'):
         self.json_file = json_file
+        self.estilo_padrao = [
+            {
+                "python_code": {
+                    "code": "pdf.set_font(family=\"Times\", style=\"B\", size=24)\ndata = datetime.date.today("
+                            ")\npdf.cell(w=0, h=80, txt=\"Relat\u00f3rio das impress\u00f5es\", border=1,"
+                            "ln=1, align=\"C\")\n# Data da cria\u00e7\u00e3o do relat\u00f3rio\npdf.set_font("
+                            "family=\"Times\", style=\"B\", size=14)\npdf.cell(w=200, h=20, txt=\"Data da "
+                            "cria\u00e7\u00e3o do relat\u00f3rio: \", border=1)\npdf.set_font(family=\"Times\", "
+                            "style=\"\", size=12)\npdf.cell(w=0, h=20, txt=data.strftime(formato_da_data), "
+                            "border=1, ln=1)\npdf.cell(w=0, h=5, txt=\"\", border=0, ln=1)\n# Datas que estiveram "
+                            "no relat\u00f3rio\ndatas_formatadas = formatar_datas()\npdf.set_font("
+                            "family=\"Times\", style=\"B\", size=12)\npdf.cell(w=100, h=15, txt=\"Datas do "
+                            "relat\u00f3rio: \", border=1)\npdf.set_font(family=\"Times\", style=\"\", "
+                            "size=7)\npdf.multi_cell(w=0, h=15, txt=str(datas_formatadas), border=1)\npdf.cell("
+                            "w=0, h=5, txt=\"\", border=0, ln=1)\n# Primeira, \u00faltima data e quantos dias "
+                            "entre elas\nprimeira_data, ultima_data, diferenca_dias = calcular_periodo("
+                            ")\npdf.set_font(family=\"Times\", style=\"B\", size=12)\npdf.cell(w=200, h=20, "
+                            "txt=\"Primeira Data e \u00daltima Data: \", border=1)\npdf.set_font("
+                            "family=\"Times\", style=\"\", size=7)\npdf.cell(w=0, h=20, txt=str(\" e \".join(["
+                            "primeira_data, ultima_data])), border=1, ln=1)\npdf.cell(w=0, h=5, txt=\"\", "
+                            "border=0, ln=1)\npdf.set_font(family=\"Times\", style=\"B\", size=12)\npdf.cell("
+                            "w=200, h=20, txt=\"Quantidade de dias do relat\u00f3rio: \", "
+                            "border=1)\npdf.set_font(family=\"Times\", style=\"\", size=7)\npdf.cell(w=0, h=20, "
+                            "txt=str(diferenca_dias), border=1, ln=1)\npdf.cell(w=0, h=5, txt=\"\", border=0, "
+                            "ln=1)\n# Cabe\u00e7alho\npdf.set_font(family=\"Times\", style=\"B\", "
+                            "size=7)\npdf.cell(w=60, h=10, txt=\"Data\", border=1)\npdf.cell(w=60, h=10, "
+                            "txt=\"Usu\u00e1rio\", border=1)\npdf.cell(w=20, h=10, txt=\"P\u00e1g\", "
+                            "border=1)\npdf.cell(w=20, h=10, txt=\"C\u00f3p\", border=1)\npdf.cell(w=20, h=10, "
+                            "txt=\"Dup\", border=1)\npdf.cell(w=25, h=10, txt=\"Total\", border=1)\npdf.cell(w=0, "
+                            "h=10, txt=\"Impressora, arquivo impresso, esta\u00e7\u00e3o, escala de cinza e nome "
+                            "do log\", border=1, ln=1)\n# Dados\ntotal = 0\nfor dado in conteudo['lista']:\n    "
+                            "paginas ="
+                            "math.ceil(int(dado.paginas) / 2) if dado.duplex else int(dado.paginas)\n    total += "
+                            "paginas * int(dado.copias)\n    pdf.set_font(family=\"Times\", style=\"B\", "
+                            "size=6)\n    data_atual = dado.data\n    pdf.cell(w=60, h=10, txt=str(data_atual + "
+                            "\" \" + dado.hora), border=1)\n    pdf.cell(w=60, h=10, txt=str(dado.user), "
+                            "border=1)\n    pdf.cell(w=20, h=10, txt=str(dado.paginas), border=1)\n    pdf.cell("
+                            "w=20, h=10, txt=str(dado.copias), border=1)\n    pdf.set_font(family=\"Times\", "
+                            "style=\"B\", size=5)\n    duplex, escala_de_cinza = \"Sim\" if dado.duplex else "
+                            "\"N\u00e3o\", \"Com Escala de Cinza\" if dado.escala_de_cinza else \"Normal\"\n    "
+                            "pdf.cell(w=20, h=10, txt=duplex, border=1)\n    pdf.set_font(family=\"Times\", "
+                            "style=\"B\", size=7)\n    pdf.cell(w=25, h=10, txt=str(total), border=1)\n    "
+                            "pdf.set_font(family=\"Times\", style=\"B\", size=4)\n    text = dado.impressora + "
+                            "\", \" + dado.arquivo + \", \" + dado.est + \", \" + escala_de_cinza + \" e \" + "
+                            "dado.principal\n    impressora_arquivo_est = truncate_text(pdf, str(text), "
+                            "1000)\n    pdf.multi_cell(w=0, h=10, txt=str(impressora_arquivo_est), border=1)\n# "
+                            "Cabe\u00e7alho\npdf.set_font(family=\"Times\", style=\"B\", size=12)\npdf.cell(w=90, "
+                            "h=20, txt=\"Total de folhas: \", border=1)\n# Total de folhas\npdf.cell(w=0, h=20, "
+                            "txt=str(total), border=1, ln=1)\n# Cabe\u00e7alho\npdf.cell(w=0, h=5, txt=\"\", "
+                            "border=0, ln=1)\npdf.set_font(family=\"Times\", style=\"B\", size=12)\npdf.cell("
+                            "w=60, h=20, txt=\"Usu\u00e1rio\", border=1)\npdf.cell(w=0, h=20, txt=\"Total\", "
+                            "border=1, ln=1)\n# Total dos usu\u00e1rios\ntotais, total = pegar_totais()\nfor user "
+                            "in total.keys():\n    pdf.set_font(family=\"Times\", style=\"B\", size=7)\n    "
+                            "pdf.cell(w=60, h=20, txt=str(user), border=1)\n    pdf.cell(w=0, h=20, "
+                            "txt=str(total[user]), border=1, ln=1)\n# Filtros\nif conteudo['filtros']:\n    pdf.cell("
+                            "w=0,"
+                            "h=5, txt=\"\", border=0, ln=1)\n    # Cabe\u00e7alho\n    pdf.set_font("
+                            "family=\"Times\", style=\"B\", size=7)\n    pdf.cell(w=75, h=10, txt=\"Filtros "
+                            "utilizados:\", border=1)\n    texto = \"\"\n    for field, rules in conteudo["
+                            "'filtros'].items("
+                            "):\n        includes = \",\".join(rules.get('include', []))\n        excludes = \","
+                            "\".join(f\"-{item}\" for item in rules.get('exclude', []))\n        campo = f\"{"
+                            "field}: {includes}{',' if includes and excludes else ''}{excludes}\"\n        if "
+                            "includes or excludes:  # Adiciona campo apenas se h\u00e1 conte\u00fado a ser "
+                            "adicionado\n            texto = f\"{texto}, {campo}\" if texto else campo\n    "
+                            "pdf.set_font(family=\"Times\", style=\"B\", size=5)\n    pdf.multi_cell(w=0, h=10, "
+                            "txt=texto, border=1)"
+                }
+            }
+        ]
         self.read_configs()
 
-    def read_configs(self):
+    def read_configs(self) -> None:
+        """
+        Ler o documento 'cofing.json' e extraír suas informações de configurações do aplicativo, caso ele não exista,
+        setar as configurações padrões e salva-las usando a função 'save_configs'.
+        """
         try:
             with open(self.json_file, 'r') as file:
                 config = json.load(file)
@@ -32,22 +110,11 @@ class Config:
                 })
                 self._traduzir_inverso = config.get('_traduzir_inverso', {v.lower(): k.title()
                                                                           for k, v in self._traduzir.items()})
-                self._default_months = config.get('_default_months', '')
-                self._default_months_list = config.get('_default_months_list', [])
-                self._default_months_list_to_show = config.get('_default_months_list_to_show', [])
-                self._default_year = config.get('_default_year', datetime.date.today().year)
-                self._default_years_list = config.get('_default_years_list', [[self._default_year]])
                 self._tipo_de_db = config.get('_tipo_de_db', '')
                 self._printers_path = config.get('_printers_path', '')
                 self._filters = config.get('_filters', {})
                 self._data_format = config.get('_data_format', '%d/%m/%Y')
-                self._default_pdf_style = config.get('_default_pdf_style', [
-                    {
-                        "python_code": {
-                            "code": "data = datetime.date.today()\npdf.set_font(family=\"Times\", style=\"B\", size=24)\npdf.cell(w=0, h=80, txt=\"Relat\u00f3rio das impress\u00f5es\", border=1, ln=1, align=\"C\")\n# Data da cria\u00e7\u00e3o do relat\u00f3rio\npdf.set_font(family=\"Times\", style=\"B\", size=14)\npdf.cell(w=200, h=20, txt=\"Data da cria\u00e7\u00e3o do relat\u00f3rio: \", border=1)\npdf.set_font(family=\"Times\", style=\"\", size=12)\npdf.cell(w=0, h=20, txt=data.strftime(formato_da_data), border=1, ln=1)\npdf.cell(w=0, h=5, txt=\"\", border=0, ln=1)\n# Datas que estiveram no relat\u00f3rio\ndatas_formatadas = formatar_datas()\npdf.set_font(family=\"Times\", style=\"B\", size=12)\npdf.cell(w=100, h=15, txt=\"Datas do relat\u00f3rio: \", border=1)\npdf.set_font(family=\"Times\", style=\"\", size=7)\npdf.multi_cell(w=0, h=15, txt=str(datas_formatadas), border=1)\npdf.cell(w=0, h=5, txt=\"\", border=0, ln=1)\n# Primeira, \u00faltima data e quantos dias entre elas\nprimeira_data, ultima_data, diferenca_dias = calcular_periodo()\npdf.set_font(family=\"Times\", style=\"B\", size=12)\npdf.cell(w=200, h=20, txt=\"Primeira Data e \u00daltima Data: \", border=1)\npdf.set_font(family=\"Times\", style=\"\", size=7)\npdf.cell(w=0, h=20, txt=str(\" e \".join([primeira_data, ultima_data])), border=1, ln=1)\npdf.cell(w=0, h=5, txt=\"\", border=0, ln=1)\npdf.set_font(family=\"Times\", style=\"B\", size=12)\npdf.cell(w=200, h=20, txt=\"Quantidade de dias do relat\u00f3rio: \", border=1)\npdf.set_font(family=\"Times\", style=\"\", size=7)\npdf.cell(w=0, h=20, txt=str(diferenca_dias), border=1, ln=1)\npdf.cell(w=0, h=5, txt=\"\", border=0, ln=1)\n# Cabe\u00e7alho\npdf.set_font(family=\"Times\", style=\"B\", size=7)\npdf.cell(w=60, h=10, txt=\"Data\", border=1)\npdf.cell(w=60, h=10, txt=\"Usu\u00e1rio\", border=1)\npdf.cell(w=20, h=10, txt=\"P\u00e1g\", border=1)\npdf.cell(w=20, h=10, txt=\"C\u00f3p\", border=1)\npdf.cell(w=20, h=10, txt=\"Dup\", border=1)\npdf.cell(w=25, h=10, txt=\"Total\", border=1)\npdf.cell(w=0, h=10, txt=\"Impressora, arquivo impresso, esta\u00e7\u00e3o, escala de cinza e nome do log\", border=1, ln=1)\n# Dados\ntotal = 0\nfor dado in lista:\n    paginas = math.ceil(int(dado.paginas) / 2) if dado.duplex else int(dado.paginas)\n    total += paginas * int(dado.copias)\n    pdf.set_font(family=\"Times\", style=\"B\", size=6)\n    data_atual = dado.data\n    pdf.cell(w=60, h=10, txt=str(data_atual + \" \" + dado.hora), border=1)\n    pdf.cell(w=60, h=10, txt=str(dado.user), border=1)\n    pdf.cell(w=20, h=10, txt=str(dado.paginas), border=1)\n    pdf.cell(w=20, h=10, txt=str(dado.copias), border=1)\n    pdf.set_font(family=\"Times\", style=\"B\", size=5)\n    duplex, escala_de_cinza = \"Sim\" if dado.duplex else \"N\u00e3o\", \"Com Escala de Cinza\" if dado.escala_de_cinza else \"Normal\"\n    pdf.cell(w=20, h=10, txt=duplex, border=1)\n    pdf.set_font(family=\"Times\", style=\"B\", size=7)\n    pdf.cell(w=25, h=10, txt=str(total), border=1)\n    pdf.set_font(family=\"Times\", style=\"B\", size=4)\n    text = dado.impressora + \", \" + dado.arquivo + \", \" + dado.est + \", \" + escala_de_cinza + \" e \" + dado.principal\n    impressora_arquivo_est = truncate_text(pdf, str(text), 1000)\n    pdf.multi_cell(w=0, h=10, txt=str(impressora_arquivo_est), border=1)\n# Cabe\u00e7alho\npdf.set_font(family=\"Times\", style=\"B\", size=12)\npdf.cell(w=90, h=20, txt=\"Total de folhas: \", border=1)\n# Total de folhas\npdf.cell(w=0, h=20, txt=str(total), border=1, ln=1)\n# Cabe\u00e7alho\npdf.cell(w=0, h=5, txt=\"\", border=0, ln=1)\npdf.set_font(family=\"Times\", style=\"B\", size=12)\npdf.cell(w=60, h=20, txt=\"Usu\u00e1rio\", border=1)\npdf.cell(w=0, h=20, txt=\"Total\", border=1, ln=1)\n# Total dos usu\u00e1rios\ntotais, total = pegar_totais()\nfor user in total.keys():\n    pdf.set_font(family=\"Times\", style=\"B\", size=7)\n    pdf.cell(w=60, h=20, txt=str(user), border=1)\n    pdf.cell(w=0, h=20, txt=str(total[user]), border=1, ln=1)\n# Filtros\nif filtros:\n    pdf.cell(w=0, h=5, txt=\"\", border=0, ln=1)\n    # Cabe\u00e7alho\n    pdf.set_font(family=\"Times\", style=\"B\", size=7)\n    pdf.cell(w=75, h=10, txt=\"Filtros utilizados:\", border=1)\n    texto = \"\"\n    for field, rules in filtros.items():\n        includes = \",\".join(rules.get('include', []))\n        excludes = \",\".join(f\"-{item}\" for item in rules.get('exclude', []))\n        campo = f\"{field}: {includes}{',' if includes and excludes else ''}{excludes}\"\n        if includes or excludes:  # Adiciona campo apenas se h\u00e1 conte\u00fado a ser adicionado\n            texto = f\"{texto}, {campo}\" if texto else campo\n    pdf.set_font(family=\"Times\", style=\"B\", size=5)\n    pdf.cell(w=0, h=10, txt=texto, border=1, ln=1)"
-                        }
-                    }
-                ])
+                self._default_pdf_style = config.get('_default_pdf_style', self.estilo_padrao)
         except FileNotFoundError:
             # Default values if config file does not exist
             self._traduzir = {
@@ -65,35 +132,23 @@ class Config:
                 "dezembro": "December"
             }
             self._traduzir_inverso = {v.lower(): k.title() for k, v in self._traduzir.items()}
-            self._default_months = ', '.join(self._traduzir_inverso.values())
-            self._default_months_list = list(range(1, 13))
-            self._default_months_list_to_show = list(range(1, 13))
-            self._default_year = str(datetime.date.today().year)
-            self._default_years_list = [[int(self._default_year)]]
             self._tipo_de_db = "test_db"
             self._printers_path = ".\\printers\\"
             self._filters = {field: {"include": [], "exclude": []} for field in self.field_names}
             self._filters["duplex"]["include"] = ["True", "False"]
             self._filters["escala_de_cinza"]["include"] = ["True", "False"]
             self._data_format = '%d/%m/%Y'
-            self._default_pdf_style = [
-                {
-                    "python_code": {
-                        "code": "data = datetime.date.today()\npdf.set_font(family=\"Times\", style=\"B\", size=24)\npdf.cell(w=0, h=80, txt=\"Relat\u00f3rio das impress\u00f5es\", border=1, ln=1, align=\"C\")\n# Data da cria\u00e7\u00e3o do relat\u00f3rio\npdf.set_font(family=\"Times\", style=\"B\", size=14)\npdf.cell(w=200, h=20, txt=\"Data da cria\u00e7\u00e3o do relat\u00f3rio: \", border=1)\npdf.set_font(family=\"Times\", style=\"\", size=12)\npdf.cell(w=0, h=20, txt=data.strftime(formato_da_data), border=1, ln=1)\npdf.cell(w=0, h=5, txt=\"\", border=0, ln=1)\n# Datas que estiveram no relat\u00f3rio\ndatas_formatadas = formatar_datas()\npdf.set_font(family=\"Times\", style=\"B\", size=12)\npdf.cell(w=100, h=15, txt=\"Datas do relat\u00f3rio: \", border=1)\npdf.set_font(family=\"Times\", style=\"\", size=7)\npdf.multi_cell(w=0, h=15, txt=str(datas_formatadas), border=1)\npdf.cell(w=0, h=5, txt=\"\", border=0, ln=1)\n# Primeira, \u00faltima data e quantos dias entre elas\nprimeira_data, ultima_data, diferenca_dias = calcular_periodo()\npdf.set_font(family=\"Times\", style=\"B\", size=12)\npdf.cell(w=200, h=20, txt=\"Primeira Data e \u00daltima Data: \", border=1)\npdf.set_font(family=\"Times\", style=\"\", size=7)\npdf.cell(w=0, h=20, txt=str(\" e \".join([primeira_data, ultima_data])), border=1, ln=1)\npdf.cell(w=0, h=5, txt=\"\", border=0, ln=1)\npdf.set_font(family=\"Times\", style=\"B\", size=12)\npdf.cell(w=200, h=20, txt=\"Quantidade de dias do relat\u00f3rio: \", border=1)\npdf.set_font(family=\"Times\", style=\"\", size=7)\npdf.cell(w=0, h=20, txt=str(diferenca_dias), border=1, ln=1)\npdf.cell(w=0, h=5, txt=\"\", border=0, ln=1)\n# Cabe\u00e7alho\npdf.set_font(family=\"Times\", style=\"B\", size=7)\npdf.cell(w=60, h=10, txt=\"Data\", border=1)\npdf.cell(w=60, h=10, txt=\"Usu\u00e1rio\", border=1)\npdf.cell(w=20, h=10, txt=\"P\u00e1g\", border=1)\npdf.cell(w=20, h=10, txt=\"C\u00f3p\", border=1)\npdf.cell(w=20, h=10, txt=\"Dup\", border=1)\npdf.cell(w=25, h=10, txt=\"Total\", border=1)\npdf.cell(w=0, h=10, txt=\"Impressora, arquivo impresso, esta\u00e7\u00e3o, escala de cinza e nome do log\", border=1, ln=1)\n# Dados\ntotal = 0\nfor dado in lista:\n    paginas = math.ceil(int(dado.paginas) / 2) if dado.duplex else int(dado.paginas)\n    total += paginas * int(dado.copias)\n    pdf.set_font(family=\"Times\", style=\"B\", size=6)\n    data_atual = dado.data\n    pdf.cell(w=60, h=10, txt=str(data_atual + \" \" + dado.hora), border=1)\n    pdf.cell(w=60, h=10, txt=str(dado.user), border=1)\n    pdf.cell(w=20, h=10, txt=str(dado.paginas), border=1)\n    pdf.cell(w=20, h=10, txt=str(dado.copias), border=1)\n    pdf.set_font(family=\"Times\", style=\"B\", size=5)\n    duplex, escala_de_cinza = \"Sim\" if dado.duplex else \"N\u00e3o\", \"Com Escala de Cinza\" if dado.escala_de_cinza else \"Normal\"\n    pdf.cell(w=20, h=10, txt=duplex, border=1)\n    pdf.set_font(family=\"Times\", style=\"B\", size=7)\n    pdf.cell(w=25, h=10, txt=str(total), border=1)\n    pdf.set_font(family=\"Times\", style=\"B\", size=4)\n    text = dado.impressora + \", \" + dado.arquivo + \", \" + dado.est + \", \" + escala_de_cinza + \" e \" + dado.principal\n    impressora_arquivo_est = truncate_text(pdf, str(text), 1000)\n    pdf.multi_cell(w=0, h=10, txt=str(impressora_arquivo_est), border=1)\n# Cabe\u00e7alho\npdf.set_font(family=\"Times\", style=\"B\", size=12)\npdf.cell(w=90, h=20, txt=\"Total de folhas: \", border=1)\n# Total de folhas\npdf.cell(w=0, h=20, txt=str(total), border=1, ln=1)\n# Cabe\u00e7alho\npdf.cell(w=0, h=5, txt=\"\", border=0, ln=1)\npdf.set_font(family=\"Times\", style=\"B\", size=12)\npdf.cell(w=60, h=20, txt=\"Usu\u00e1rio\", border=1)\npdf.cell(w=0, h=20, txt=\"Total\", border=1, ln=1)\n# Total dos usu\u00e1rios\ntotais, total = pegar_totais()\nfor user in total.keys():\n    pdf.set_font(family=\"Times\", style=\"B\", size=7)\n    pdf.cell(w=60, h=20, txt=str(user), border=1)\n    pdf.cell(w=0, h=20, txt=str(total[user]), border=1, ln=1)\n# Filtros\nif filtros:\n    pdf.cell(w=0, h=5, txt=\"\", border=0, ln=1)\n    # Cabe\u00e7alho\n    pdf.set_font(family=\"Times\", style=\"B\", size=7)\n    pdf.cell(w=75, h=10, txt=\"Filtros utilizados:\", border=1)\n    texto = \"\"\n    for field, rules in filtros.items():\n        includes = \",\".join(rules.get('include', []))\n        excludes = \",\".join(f\"-{item}\" for item in rules.get('exclude', []))\n        campo = f\"{field}: {includes}{',' if includes and excludes else ''}{excludes}\"\n        if includes or excludes:  # Adiciona campo apenas se h\u00e1 conte\u00fado a ser adicionado\n            texto = f\"{texto}, {campo}\" if texto else campo\n    pdf.set_font(family=\"Times\", style=\"B\", size=5)\n    pdf.cell(w=0, h=10, txt=texto, border=1, ln=1)"
-                    }
-                }
-            ]
+            self._default_pdf_style = self.estilo_padrao
             self.save_config()
 
-    def save_config(self):
+    def save_config(self) -> None:
+        """
+        Salvar os parâmetros da classe no arquivo 'config.json', em caso dele não existir, ele será criado através da
+        função 'directory_check'.
+        """
         config = {
             '_traduzir': self._traduzir,
             '_traduzir_inverso': self._traduzir_inverso,
-            '_default_months': self._default_months,
-            '_default_months_list': self._default_months_list,
-            '_default_months_list_to_show': self._default_months_list_to_show,
-            '_default_year': self._default_year,
-            '_default_years_list': self._default_years_list,
             '_tipo_de_db': self._tipo_de_db,
             '_printers_path': self._printers_path,
             '_filters': self._filters,
@@ -104,31 +159,43 @@ class Config:
         with open(self.json_file, 'w') as file:
             json.dump(config, file, indent=4)
 
-    def alter_filter(self, new_filter: dict[str, dict[str, set | list]]):
+    def alter_filter(self, new_filter: dict[str, dict[str, set | list]]) -> None:
+        """
+        Altera os filtros da configuração.
+        :param new_filter: Dicionário contendo os filtros.
+        """
         self._filters = new_filter
 
-    def translate(self, data):
-        """Traduz a data para o formato adequado."""
+    def translate(self, data) -> str:
+        """
+        Traduz a data para o formato adequado.
+        :param data: Data que será traduzida.
+        :return: Data traduzida.
+        """
         return re.sub('|'.join(self._traduzir.keys()),
                       lambda x: self._traduzir[x.group().lower()],
                       data,
                       flags=re.IGNORECASE)
 
-    def translate_back(self, data):
-        """Traduz a data de volta para o formato original."""
+    def translate_back(self, data) -> str:
+        """
+        Traduz a data de volta para o formato original.
+        :param data: Data que já foi traduzida.
+        :return: Data no formato original.
+        """
         return re.sub('|'.join(self._traduzir_inverso.keys()),
                       lambda x: self._traduzir_inverso[x.group().lower()],
                       data,
                       flags=re.IGNORECASE)
 
     def get_configs(self) -> dict:
+        """
+        Retorna os parâmetros da classe.
+        :return: retorna o dicionário para traduções, o tipo do banco de dados, o caminho padrão dos logs para leitura,
+        os filtros, e o formato padrão de data.
+        """
         return {
             "_traduzir": self._traduzir,
-            "_default_months": self._default_months,
-            "_default_months_list": self._default_months_list,
-            "_default_months_list_to_show": self._default_months_list_to_show,
-            "_default_year": self._default_year,
-            "_default_years_list": self._default_years_list,
             "_tipo_de_db": self._tipo_de_db,
             '_printers_path': self._printers_path,
             '_filters': self._filters,
@@ -136,23 +203,90 @@ class Config:
         }
 
     def get_default_pdf_style(self) -> list:
+        """
+        Retorna os estilo de PDF padrão.
+        :return: Uma lista contendo vários dicionário para montagem do estilo de PDF padrão.
+        """
         return self._default_pdf_style
 
-    def alter_translations(self, new_translations: dict):
+    def alter_translations(self, new_translations: dict) -> None:
+        """
+        AVISO! NÃO UTILIZAR CASO NÃO NECESSÁRIO, POIS AFETA A APLICAÇÃO INTEIRA.
+        Altera o dicionário de traduções para caso esteja ocorrendo problemas de localização.
+        :param new_translations: Dicionário novo de traduções.
+        """
         self._traduzir = new_translations
         self._traduzir_inverso = {v.lower(): k.title() for k, v in self._traduzir.items()}
 
     def get_filter(self) -> dict[str, dict[str, set | list]]:
+        """
+        Pegar os filtros. Include seriam todos que você deseja pegar e os Exclude os que NÃO quer pegar.
+        :return: Dicionário de Include e Exclude de cada filtro.
+        """
         return self._filters
 
-    def get_data_format(self):
+    def _format_date_ranges(self, dates: dict[str, dict[str, set | list]]) -> list[str]:
+        """
+        Recebe o filtro das datas Include ou Exclude e o retorna compactado.
+        :param dates: Dicionário contendo o Include ou Exclude das datas para compactar-lo.
+        :return: Lista de strings.
+        """
+        if not dates:
+            return []
+
+        dates = sorted([datetime.strptime(date, self._data_format) for date in dates])
+        grouped_dates = []
+        temp_group = [dates[0]]
+
+        for i in range(1, len(dates)):
+            if dates[i] == dates[i - 1] + timedelta(days=1):
+                temp_group.append(dates[i])
+            else:
+                grouped_dates.append(temp_group)
+                temp_group = [dates[i]]
+        grouped_dates.append(temp_group)
+
+        result = []
+        for group in grouped_dates:
+            if len(group) == 1:
+                result.append(f"{group[0].strftime(self._data_format)}")
+            else:
+                result.append(f"{group[0].strftime(self._data_format)} até {group[-1].strftime(self._data_format)}")
+
+        return result
+
+    def get_show_filter(self) -> dict[str, dict[str, set | list]]:
+        """
+        Devolve todos os dicionários, porém com o das datas compactadas.
+        :return: Dicionário com os filtros da data compactados.
+        """
+        dicionario = copy.deepcopy(self._filters)
+        datas_include = dicionario['data']['include']
+        datas_exclude = dicionario['data']['exclude']
+
+        include_ranges = self._format_date_ranges(datas_include)
+        exclude_ranges = self._format_date_ranges(datas_exclude)
+
+        dicionario['data']['include'] = include_ranges
+        dicionario['data']['exclude'] = exclude_ranges
+
+        return dicionario
+
+    def get_data_format(self) -> str:
         return str(self._data_format)
 
     @staticmethod
-    def directory_check(directory):
+    def directory_check(directory) -> bool:
+        """
+        Irá checar se existe o diretório, irá criá-lo caso não exista,
+        :param directory: Caminho do diretório(arquivo, pasta...), será criado caso não exista.
+        :return: bool(True): Caso o diretório exista; bool(False): Caso o diretório não exista.
+        """
         directory = os.path.dirname(directory)
         if not os.path.exists(directory):
             os.makedirs(directory)
+            return False
+        return True
 
 
 if __name__ == '__main__':

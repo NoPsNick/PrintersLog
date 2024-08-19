@@ -1,0 +1,73 @@
+#:import boxlayout_with_action_bar boxlayout_with_action_bar
+#:import bordered_boxlayout bordered_boxlayout
+
+<SavedScreen>:
+    recycleView: recycleView
+    totalView: totalView
+    BoxLayoutWithActionBar:
+        title: "Dados"
+        BoxLayout:
+            orientation: "vertical"
+            size_hint: 1, 1
+            BoxLayout:
+                padding: dp(5)
+                orientation: "horizontal"
+                size_hint_y: 0.8
+
+                BorderedBoxLayout:
+                    padding: dp(3)
+                    orientation: "vertical"
+                    size_hint_x: 0.7
+
+                    TitleLabel:
+                        text: "Dados"
+                    BoxLayout:
+                        padding: dp(5), dp(5)
+                        RecycleView:
+                            id: recycleView
+                            viewclass: 'ResultWidget'
+                            RecycleBoxLayout:
+                                default_size: None, dp(32)
+                                default_size_hint: 1, None
+                                size_hint_y: None
+                                height: dp(self.minimum_height)
+                                orientation: 'vertical'
+                                spacing: dp(5)
+                BoxLayout:
+                    orientation: "vertical"
+                    size_hint_x: 0.3
+                    BorderedBoxLayout:
+                        padding: dp(5)
+                        size_hint_y: 0.7
+                        orientation: "vertical"
+
+                        TitleLabel:
+                            text: "Totais"
+                        BoxLayout:
+                            padding: (0, dp(3), 0, 0)
+                            RecycleView:
+                                id: totalView
+                                viewclass: 'TotalWidget'
+                                RecycleBoxLayout:
+                                    default_size: None, dp(20)
+                                    default_size_hint: 1, None
+                                    size_hint_y: None
+                                    height: dp(self.minimum_height+1)
+                                    orientation: 'vertical'
+                                    spacing: dp(2)
+                    BoxLayout:
+                        padding: (dp(5), dp(5), 0, 0)
+                        size_hint_y: 0.3
+                        orientation: "vertical"
+
+                        Button:
+                            text: "Pesquisar"
+                            height: dp(40)
+                            on_release: root.on_button_click()
+                        Button:
+                            text: "Filtros"
+                            height: dp(40)
+                            on_release: app.manager.push("FilterScreen")
+                        Button:
+                            text: "Criar Relatório em PDF"
+                            on_release: root.on_button_relatorio()

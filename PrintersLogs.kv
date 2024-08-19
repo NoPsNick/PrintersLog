@@ -1,0 +1,139 @@
+#:import utils kivy.utils
+#:import boxlayout_with_action_bar boxlayout_with_action_bar
+#:import configscreen telas.configscreen
+#:import listscreen telas.listscreen
+#:import resultscreen telas.resultscreen
+#:import savedscreen telas.savedscreen
+#:import filterscreen telas.filterscreen
+#:import pdfscreen telas.pdfscreen
+#:import documentoscreen telas.documentoscreen
+#:set color1 "#DD7835"
+#:set color2 "#D8D8D8"
+
+<AlignLabel@Label>:
+    text_size: self.size
+    font_size: dp((self.width/60)-1) if dp((self.width/60)-1) < dp(10) else dp(10)
+    halign: "left"
+    valign: "center"
+    canvas.before:
+        Color:
+            # rgb: utils.get_random_color()
+            rgba: 0, 0, 0, 0
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+<FitLabel@Label>:
+    size_hint: None, None
+    size: self.texture_size
+
+<Badge@FitLabel>:
+    color: 0, 0, 0, 1
+    bold: True
+    font_size: dp(10)
+    padding: dp(10), dp(3)
+    canvas.before:
+        Rectangle:
+            source: "images/badge.png"
+            pos: self.pos
+            size: self.size
+
+<TitleLabel@FitLabel>:
+    font_size: dp(22)
+    bold: True
+    padding: dp(16), dp(3)
+    canvas.before:
+        Color:
+            rgb: utils.get_color_from_hex(color1)
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+<ResultWidget>:
+    BoxLayout:
+        id: result_id
+        size_hint_max_x: root.width
+        size_hint_min_x: dp(300)
+        orientation: "vertical"
+        BoxLayout:
+            FitLabel:
+                font_size: dp(14)
+                bold: True
+                text: root.principal + " " + root.user + " PÁGINAS: " + str(root.paginas) + " CÓPIAS: " + str(root.copias)
+            Badge:
+                text: "DUPLEX" if root.duplex else ""
+            Badge:
+                text: "CINZA" if root.escala_de_cinza else ""
+        AlignLabel:
+            text: "DATA: " + root.data + " HORÁRIO: " + root.hora + " IMPRESSORA: " + root.impressora +" ARQUIVO: " + root.arquivo + " ESTAÇÃO: " + root.est
+            color: utils.get_color_from_hex(color2)
+
+<TotalWidget>:
+    BoxLayout:
+        id: total_id
+        size_hint_max_x: root.width/2
+        size_hint_min_x: dp(300)
+        orientation: "vertical"
+        BoxLayout:
+            FitLabel:
+                font_size: dp(14)
+                bold: True
+                text: root.user + root.arquivo + ": " + str(root.total)
+
+
+<MainMenu>:
+    BoxLayout:
+        orientation: 'vertical'
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_y: None
+            height: dp(50)
+            Label:
+                text: 'PRINTERS LOG'
+                font_size: 32
+                size_hint_y: None
+                height: dp(50)
+        BoxLayout:
+            orientation: 'vertical'
+            padding: [10, 10, 10, 10]
+            spacing: dp(10)
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_y: None
+                height: dp(50)
+                Button:
+                    text: 'Ler os Dados das Impressoras'
+                    on_release: app.manager.push("ResultScreen")
+                Button:
+                    text: 'Dados Salvos'
+                    on_release: app.manager.push("SavedScreen")
+                Button:
+                    text: 'Configurações'
+                    on_release: app.manager.push("ConfigScreen")
+
+# Telas
+<ScreenManager>:
+    MainMenu:
+        name: "MainMenu"
+        id: MainMenu
+    ResultScreen:
+        name: "ResultScreen"
+        id: ResultScreen
+    SavedScreen:
+        name: "SavedScreen"
+        id: SavedScreen
+    ConfigScreen:
+        name: "ConfigScreen"
+        id: ConfigScreen
+    ListScreen:
+        name: "ListScreen"
+        id: ListScreen
+    FilterScreen:
+        name: "FilterScreen"
+        id: FilterScreen
+    PDFScreen:
+        name: "PDFScreen"
+        id: PDFScreen
+    DocumentoScreen:
+        name: "DocumentoScreen"
+        id: DocumentoScreen

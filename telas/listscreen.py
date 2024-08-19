@@ -2,6 +2,7 @@
 from functools import partial
 
 from kivy.lang import Builder
+from kivy.metrics import dp
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.screenmanager import Screen
@@ -9,7 +10,7 @@ from kivy.uix.screenmanager import Screen
 from bordered_boxlayout import BorderedBoxLayout
 from configuration import Config
 
-Builder.load_file("listscreen.kv", encoding='latin-1')
+Builder.load_file("./telas/listscreen.kv", encoding='latin-1')
 
 
 class ListScreen(Screen):
@@ -37,11 +38,9 @@ class ListScreen(Screen):
         grid = self.ids.list_grid
         grid.clear_widgets()
         for key, value in self.lista.items():
-            item_box = BorderedBoxLayout(size_hint_y=None, height=40)
+            item_box = BorderedBoxLayout(size_hint_y=None, height=dp(32), padding=dp(5))
             label = Label(text=f'{key.title()} traduzido para {value.title()}', size_hint_x=0.8)
-            button = Button(text='Remover', size_hint_x=0.2, on_press=partial(self.button_delete, key))
+            button = Button(text='Remover', size_hint_x=0.2, on_release=partial(self.button_delete, key))
             item_box.add_widget(label)
             item_box.add_widget(button)
             grid.add_widget(item_box)
-
-

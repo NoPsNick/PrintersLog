@@ -1,0 +1,53 @@
+#:import boxlayout_with_action_bar boxlayout_with_action_bar
+
+
+<DocWidget>:
+    orientation: 'horizontal'
+    size_hint_y: None
+    height: dp(32)
+    padding: dp(5)
+
+    Label:
+        text: "Documento: " + root.text
+        size_hint_x: 0.8
+
+    Button:
+        text: 'Remover Documento'
+        size_hint_x: 0.2
+        on_release: app.manager.current_screen.on_button_delete(root.text)
+
+
+<DocumentoScreen>:
+    docview: docview
+    BoxLayoutWithActionBar:
+        title: "Lista de todos os Documentos salvos"
+        BoxLayout:
+            size_hint: 1, 0.85
+            orientation: 'vertical'
+            padding: dp(10)
+            RecycleView:
+                id: docview
+                viewclass: 'DocWidget'
+                RecycleBoxLayout:
+                    default_size: None, dp(32)
+                    default_size_hint: 1, None
+                    size_hint_y: None
+                    height: dp(self.minimum_height)
+                    orientation: 'vertical'
+                    spacing: dp(5)
+
+        BoxLayout:
+            orientation: 'horizontal'
+            padding: dp(5)
+            size_hint: 1, 0.15
+
+            TextInput:
+                id: principal
+                multiline: False
+                hint_text: 'Digite o nome do documento'
+                size_hint: 0.7, 1
+
+            Button:
+                text: 'Remover'
+                size_hint: 0.3, 1
+                on_release: root.on_button_delete(principal.text) if principal.text else None

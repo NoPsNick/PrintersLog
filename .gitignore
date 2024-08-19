@@ -162,6 +162,4 @@ cython_debug/
 .idea/
 *.json
 *.db
-*.yaml
-*.pdf
-*.csv
+PrintersLogs.pypirc

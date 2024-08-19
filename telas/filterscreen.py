@@ -6,7 +6,7 @@ from kivy.uix.screenmanager import Screen
 
 from configuration import Config
 
-Builder.load_file("filterscreen.kv", encoding='latin-1')
+Builder.load_file("./telas/filterscreen.kv", encoding='latin-1')
 
 
 class FilterScreen(Screen):

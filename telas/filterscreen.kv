@@ -1,4 +1,5 @@
 #:import boxlayout_with_action_bar boxlayout_with_action_bar
+#:import bordered_boxlayout bordered_boxlayout
 
 
 <FilterScreen>:
@@ -6,69 +7,104 @@
         title: "Filtros"
         BoxLayout:
             orientation: 'vertical'
+            spacing: dp(10)
 
             Label:
                 text: "Filtros dos Resultados"
-                font_size: '20sp'
+                font_size: dp(25)
                 size_hint_y: None
                 height: self.texture_size[1]
 
-            GridLayout:
-                cols: 2
-                spacing: 10
+            BorderedBoxLayout
+                orientation: 'horizontal'
+                padding: dp(3)
 
                 Label:
+                    font_size: dp(18)
                     text: "Data"
                 TextInput:
                     id: data_input
                     multiline: True
 
+            BorderedBoxLayout
+                orientation: 'horizontal'
+                padding: dp(3)
+
                 Label:
+                    font_size: dp(18)
                     text: "Usuário"
                 TextInput:
                     id: usuario_input
                     multiline: True
 
+            BorderedBoxLayout
+                orientation: 'horizontal'
+                padding: dp(3)
+
                 Label:
+                    font_size: dp(18)
                     text: "Impressora"
                 TextInput:
                     id: impressora_input
                     multiline: True
 
+            BorderedBoxLayout
+                orientation: 'horizontal'
+                padding: dp(3)
+
                 Label:
+                    font_size: dp(18)
                     text: "Estação"
                 TextInput:
                     id: estacao_input
                     multiline: True
 
+            BorderedBoxLayout
+                orientation: 'horizontal'
+                padding: dp(3)
+
                 Label:
+                    font_size: dp(18)
+                    size_hint_x: 0.3
                     text: "Duplex"
                 BoxLayout:
+                    size_hint_x: 0.7
                     orientation: 'horizontal'
                     CheckBox:
                         id: duplex_true
                     Label:
-                        text: "True"
+                        font_size: dp(12)
+                        text: "Com Duplex"
                     CheckBox:
                         id: duplex_false
                     Label:
-                        text: "False"
+                        font_size: dp(12)
+                        text: "Sem Duplex"
+
+            BorderedBoxLayout
+                orientation: 'horizontal'
+                padding: dp(3)
 
                 Label:
+                    size_hint_x: 0.3
+                    font_size: dp(18)
                     text: "Escala de Cinza"
                 BoxLayout:
+                    size_hint_x: 0.7
                     orientation: 'horizontal'
                     CheckBox:
                         id: escala_true
                     Label:
-                        text: "True"
+                        font_size: dp(12)
+                        text: "Com Escala de Cinza"
                     CheckBox:
                         id: escala_false
                     Label:
-                        text: "False"
+                        font_size: dp(12)
+                        text: "Sem Escala de Cinza"
         Button:
             text: "Salvar Filtros"
             size_hint_y: None
-            height: 50
+            height: dp(50)
             on_release:
                 root.filter_results(data_input.text,usuario_input.text,impressora_input.text,estacao_input.text,{'True': duplex_true.active, 'False': duplex_false.active},{'True': escala_true.active, 'False': escala_false.active})
