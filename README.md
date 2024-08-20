@@ -1,54 +1,54 @@
-# VisualizaÁ„o e ManipulaÁ„o de Logs de Impressoras
+# Visualiza√ß√£o e Manipula√ß√£o de Logs de Impressoras
 
-Este projeto È uma aplicaÁ„o desenvolvida em Python para a visualizaÁ„o e manipulaÁ„o de logs de impressoras. Ele
-permite a leitura de arquivos de log, a criaÁ„o de documentos PDF e o salvamento dos dados em formato JSON ou em um
+Este projeto √© uma aplica√ß√£o desenvolvida em Python para a visualiza√ß√£o e manipula√ß√£o de logs de impressoras. Ele
+permite a leitura de arquivos de log, a cria√ß√£o de documentos PDF e o salvamento dos dados em formato JSON ou em um
 banco de dados.
 
 ## Funcionalidades
 
-- **Tela Principal**: InÌcio da aplicaÁ„o com trÍs botıes:
-    - **Ler os Dados das Impressıes**: Acessa a tela de Resultados.
+- **Tela Principal**: In√≠cio da aplica√ß√£o com tr√™s bot√µes:
+    - **Ler os Dados das Impress√µes**: Acessa a tela de Resultados.
     - **Dados Salvos**: Acessa a tela de Dados Salvos.
-    - **ConfiguraÁıes**: Acessa a tela de ConfiguraÁıes.
+    - **Configura√ß√µes**: Acessa a tela de Configura√ß√µes.
 
 - **Tela de Resultados**:
-    - Permite a leitura de arquivos `.html` e `.csv` com dados de impress„o.
-    - **HTML**: Espera-se que no tÌtulo tenha a data no formato `%d %B %Y`, e uma as tabela com colunas: Hora, Usu·rio,
-      P·ginas, CÛpias, Fila de Impress„o, Documento, EstaÁ„o, Duplex, e Escala de Cinza.
-    - **CSV**: A primeira linha È informaÁ„o extra, a segunda linha tem o cabeÁalho no formato: Time, User, Pages,
+    - Permite a leitura de arquivos `.html` e `.csv` com dados de impress√£o.
+    - **HTML**: Espera-se que no t√≠tulo tenha a data no formato `%d %B %Y`, e uma tabela com colunas: Hora, Usu√°rio,
+      P√°ginas, C√≥pias, Fila de Impress√£o, Documento, Esta√ß√£o, Duplex, e Escala de Cinza.
+    - **CSV**: A primeira linha √© informa√ß√£o extra, a segunda linha tem o cabe√ßalho no formato: Time, User, Pages,
       Copies, Printer, Document Name, Client, Paper Size, Language, Height, Width, Duplex, Grayscale, Size.
-    - Oferece opÁıes para salvar os resultados em JSON, CSVs compactos ou em um banco de dados.
+    - Oferece op√ß√µes para salvar os resultados em JSON, CSVs compactos ou em um banco de dados.
 
 - **Tela Dados Salvos**:
     - Permite pesquisar dados salvos.
-    - Botıes:
-        - **Pesquisar**: Pesquisa em JSON ou banco de dados, dependendo da configuraÁ„o.
+    - Bot√µes:
+        - **Pesquisar**: Pesquisa em JSON ou banco de dados, dependendo da configura√ß√£o.
         - **Filtros**: Acessa a tela de Filtros.
-        - **Criar RelatÛrio em PDF**: Acessa a tela de RelatÛrios, caso haja dados obtidos pelo bot„o Pesquisar.
+        - **Criar Relat√≥rio em PDF**: Acessa a tela de Relat√≥rios, caso haja dados obtidos pelo bot√£o Pesquisar.
 
 - **Tela Filtros**:
     - Filtragem dos dados salvos:
-        - **Data**: Permite filtrar por datas especÌficas, ranges ou m˙ltiplas datas.
-        - **Usu·rio**: Filtra dados por usu·rio especÌfico ou exclui dados de usu·rios.
+        - **Data**: Permite filtrar por datas espec√≠ficas, ranges ou m√∫ltiplas datas.
+        - **Usu√°rio**: Filtra dados por usu√°rio espec√≠fico ou exclui dados de usu√°rios.
         - **Impressora**: Filtra dados por impressora.
-        - **EstaÁ„o**: Filtra dados por estaÁ„o.
-        - **Duplex e Escala de Cinza**: Filtra por caracterÌsticas de impress„o, como duplex e escala de cinza.
+        - **Esta√ß√£o**: Filtra dados por esta√ß√£o.
+        - **Duplex e Escala de Cinza**: Filtra por caracter√≠sticas de impress√£o, como duplex e escala de cinza.
 
-- **Tela RelatÛrios**:
-    - CriaÁ„o de relatÛrios em PDF com opÁıes de personalizaÁ„o:
+- **Tela Relat√≥rios**:
+    - Cria√ß√£o de relat√≥rios em PDF com op√ß√µes de personaliza√ß√£o:
         - **Set Font**: Define a fonte dos textos.
-        - **Add Cell**: Adiciona cÈlulas ao PDF.
-        - **Add Multicell**: Adiciona cÈlulas que ocupam v·rias linhas.
-        - **Add CÛdigo Python**: Adiciona cÛdigo Python para criar PDFs dinamicamente.
-        - **Remover ⁄ltima AdiÁ„o**: Remove a ˙ltima adiÁ„o no estilo de PDF.
+        - **Add Cell**: Adiciona c√©lulas ao PDF.
+        - **Add Multicell**: Adiciona c√©lulas que ocupam v√°rias linhas.
+        - **Add C√≥digo Python**: Adiciona c√≥digo Python para criar PDFs dinamicamente.
+        - **Remover √öltima Adi√ß√£o**: Remove a √∫ltima adi√ß√£o no estilo de PDF.
         - **Estilos de PDF Salvos**: Gerencia estilos de PDF salvos.
-        - **Pegar Estilo Padr„o**: ObtÈm o estilo padr„o de PDF.
+        - **Pegar Estilo Padr√£o**: Obt√©m o estilo padr√£o de PDF.
         - **Salvar Estilo de PDF**: Salva o estilo de PDF atual.
         - **Gerar PDF**: Gera um PDF baseado no estilo atual.
 
-## InstalaÁ„o
+## Instala√ß√£o
 
-1. Clone o repositÛrio:
+1. Clone o reposit√≥rio:
    ```bash
    git clone https://github.com/NoPsNick/PrintersLog.git
    cd repo
@@ -58,172 +58,161 @@ banco de dados.
     python -m venv env
     source env/bin/activate  # No Windows: env\Scripts\activate
 
-3. Instale as dependÍncias:
+3. Instale as depend√™ncias:
     ```bash 
     pip install -r requirements.txt
 
 ## Uso
 
-1. Execute a aplicaÁ„o:
+1. Execute a aplica√ß√£o:
     ```bash 
     python PrintersLogs.py
 
-2. Navegue pelas diferentes telas da aplicaÁ„o usando a interface gr·fica.
+2. Navegue pelas diferentes telas da aplica√ß√£o usando a interface gr√°fica.
 
-## Estrutura dos Arquivos
+## Depend√™ncias
 
-- Principal: Tela inicial com botıes para acessar outras partes da aplicaÁ„o.
-- Resultados: Tela para carregar e processar arquivos de log.
-- Dados Salvos: Tela para pesquisar e visualizar dados salvos.
-- Filtros: Tela para aplicar filtros aos dados salvos.
-- RelatÛrios: Tela para criar e personalizar relatÛrios em PDF.
-- ConfiguraÁıes: Tela para ajustar configuraÁıes da aplicaÁ„o.
-- Lista de TraduÁıes: Tela para gerenciar traduÁıes.
-- Alterar Documentos: Tela para remover documentos lidos.
-
-## DependÍncias
-
-- kivy: Para a interface gr·fica.
-- fpdf: Para manipulaÁ„o de PDFs.
+- kivy: Para a interface gr√°fica.
+- fpdf: Para manipula√ß√£o de PDFs.
 - json: Para salvar e carregar dados em formato JSON.
 - SQLAlchemy: Para armazenamento dos dados.
-- pandas: Para visualizaÁ„o/manipulaÁ„o dos dados.
-- python-dateutil: Para documentaÁ„o.
-- numpy: Para operaÁıes matem·ticas complexas.
+- pandas: Para visualiza√ß√£o/manipula√ß√£o dos dados.
+- python-dateutil: Para documenta√ß√£o.
+- numpy: Para opera√ß√µes matem√°ticas complexas.
 
-## ContribuiÁ„o
+## Contribui√ß√£o
 
-ContribuiÁıes s„o bem-vindas! Sinta-se ‡ vontade para abrir issues e pull requests.
+Contribui√ß√µes s√£o bem-vindas! Sinta-se √† vontade para abrir issues e pull requests.
 
-## LicenÁa
+## Licen√ßa
 
-Este projeto est· licenciado sob a [MIT License](LICENSE).
+Este projeto est√° licenciado sob a [MIT License](LICENSE).
 
 ## Contato
 
-Para mais informaÁıes, entre em contato
+Para mais informa√ß√µes, entre em contato
 com [serafim999junior@hotmail.com](mailto:serafim999junior@hotmail.com?subject=Contato%20do%20GitHub)
 
 # Texto mais explicativo
 
-- A tela **Principal**, È o inÌcio da aplicaÁ„o, onde h· trÍs botıes.
-    - Ler os Dados das Impressıes que o usu·rio iria para a tela de Resultados.
-    - Dados Salvos que o usu·rio iria para a tela de Dados Salvos.
-    - ConfiguraÁıes que o usu·rio iria para a tela de ConfiguraÁ„o da aplicaÁ„o.
+- A tela **Principal**, √© o in√≠cio da aplica√ß√£o, onde h√° tr√™s bot√µes.
+    - Ler os Dados das Impress√µes que o usu√°rio iria para a tela de Resultados.
+    - Dados Salvos que o usu√°rio iria para a tela de Dados Salvos.
+    - Configura√ß√µes que o usu√°rio iria para a tela de Configura√ß√£o da aplica√ß√£o.
 
-- A tela de **Resultados** seria onde o usu·rio conseguiria colocar o diretÛrio de todos os arquivos .html e .csv para
+- A tela de **Resultados** seria onde o usu√°rio conseguiria colocar o diret√≥rio de todos os arquivos .html e .csv para
   leitura.
-    - O html precisa ter no comeÁo a data dentro do tÌtulo do html no formato '%d %B %Y' e tabelas com as colunas sendo:
-      Hora, Usu·rio, Paginas, CÛpias, Fila de Impress„o, Documento, EstaÁ„o, Duplex e Escala de cinza.
-    - O formato do csv: a primeira linha ser· informaÁ„o extra, a segunda o cabeÁalho no seguinte formato: Time, User,
+    - O html precisa ter no come√ßo a data dentro do t√≠tulo do html no formato '%d %B %Y' e tabelas com as colunas sendo:
+      Hora, Usu√°rio, Paginas, C√≥pias, Fila de Impress√£o, Documento, Esta√ß√£o, Duplex e Escala de cinza.
+    - O formato do csv: a primeira linha ser√° informa√ß√£o extra, a segunda o cabe√ßalho no seguinte formato: Time, User,
       Pages, Copies, Printer, Document Name, Client, Paper Size, Language, Height, Width, Duplex, Grayscale, Size.
-    - ApÛs pressionar o bot„o Results, ele ir· ler todos os arquivos html e csv que tenham a estruturaÁ„o correta e ir„o
-      aparecer 3 botıes.
-        - Salvar em JSON que ir· salvar o resultado obtido em formato JSON.
-        - Criar CSVs que ir· salvar os resultado em arquivos csvs compactos.
-        - Salvar no Banco de Dados que caso esteja ativo, ir· salvar os resultados no banco de dados.
+    - Ap√≥s pressionar o bot√£o Results, ele ir√° ler todos os arquivos html e csv que tenham a estrutura√ß√£o correta e ir√£o
+      aparecer 3 bot√µes.
+        - Salvar em JSON que ir√° salvar o resultado obtido em formato JSON.
+        - Criar CSVs que ir√° salvar os resultado em arquivos csvs compactos.
+        - Salvar no Banco de Dados que caso esteja ativo, ir√° salvar os resultados no banco de dados.
 
-- A tela **Dados Salvos** o usu·rio iria conseguir fazer a pesquisa de todos os dados salvos, contendo 3 botıes.
-    - Pesquisar que caso o banco de dados esteja desativo nas configuraÁıes, ir· fazer a busca no formato JSON, caso
-      esteja ativo, ir· fazer a busca no banco de dados.
-    - Filtros que o usu·rio vai para a tela Filtros.
-    - Criar RelatÛrio em PDF que o usu·rio vai para a tela de RelatÛrios, caso tenha alguma dado obtido pelo bot„o de
+- A tela **Dados Salvos** o usu√°rio iria conseguir fazer a pesquisa de todos os dados salvos, contendo 3 bot√µes.
+    - Pesquisar que caso o banco de dados esteja desativo nas configura√ß√µes, ir√° fazer a busca no formato JSON, caso
+      esteja ativo, ir√° fazer a busca no banco de dados.
+    - Filtros que o usu√°rio vai para a tela Filtros.
+    - Criar Relat√≥rio em PDF que o usu√°rio vai para a tela de Relat√≥rios, caso tenha alguma dado obtido pelo bot√£o de
       Pesquisar.
 
-- A tela **Filtros** È onde o usu·rio poder· fazer filtragem dos dados que ele deseja obter dos que est„o salvos, tendo
+- A tela **Filtros** √© onde o usu√°rio poder√° fazer filtragem dos dados que ele deseja obter dos que est√£o salvos, tendo
   dois formatos.
-    - Os que ele quer e os que ele n„o quer.
-    - Caso n„o seja informado(duplex e escala de cinza seria selecionar tudo) ir· buscar todos os dados que possuem tal
-      filtragem, caso informado ele ir· buscar apenas os dados que possuem tal filtragem, caso informado com um '-'
-      SINAL DE MENOS/TRA«O NO COME«O, ir· remover o dado da pesquisa.
-    - Os tipos de filtragem s„o:
-        - Data: O usu·rio ir· fornecer as datas que ele desejar, caso tenha o '-' SINAL DE MENOS/TRA«O NO COME«O a
-          seguinte data n„o ir· aparecer nos dados obtidos ao apertar o bot„o Pesquisar. TambÈm oferece a funÁ„o de
-          colocar ranges ou m˙ltiplas datas, utilizando o '-' SINAL DE MENOS/TRA«O NO MEIO de duas datas, tambÈm podendo
-          ignorar caso tenha o '-' SINAL DE MENOS/TRA«O NO COME«O, exemplos > '01/01/0001-10/01/0001, 12/01/0001' ir·
+    - Os que ele quer e os que ele n√£o quer.
+    - Caso n√£o seja informado(duplex e escala de cinza seria selecionar tudo) ir√° buscar todos os dados que possuem tal
+      filtragem, caso informado ele ir√° buscar apenas os dados que possuem tal filtragem, caso informado com um '-'
+      SINAL DE MENOS/TRA√áO NO COME√áO, ir√° remover o dado da pesquisa.
+    - Os tipos de filtragem s√£o:
+        - Data: O usu√°rio ir√° fornecer as datas que ele desejar, caso tenha o '-' SINAL DE MENOS/TRA√áO NO COME√áO a
+          seguinte data n√£o ir√° aparecer nos dados obtidos ao apertar o bot√£o Pesquisar. Tamb√©m oferece a fun√ß√£o de
+          colocar ranges ou m√∫ltiplas datas, utilizando o '-' SINAL DE MENOS/TRA√áO NO MEIO de duas datas, tamb√©m podendo
+          ignorar caso tenha o '-' SINAL DE MENOS/TRA√áO NO COME√áO, exemplos > '01/01/0001-10/01/0001, 12/01/0001' ir√°
           devolver as seguintes datas: '03/01/0001, 07/01/0001, 08/01/0001, 05/01/0001, 02/01/0001, 12/01/0001,
           04/01/0001, 10/01/0001, 06/01/0001, 09/01/0001, 01/01/0001'
-          Outro exemplo usando a remoÁ„o: '01/01/0001-10/01/0001, -05/01/0001, -07/01/0001-09/01/0001' ir· devolver '
+          Outro exemplo usando a remo√ß√£o: '01/01/0001-10/01/0001, -05/01/0001, -07/01/0001-09/01/0001' ir√° devolver '
           03/01/0001, 02/01/0001, 04/01/0001, 10/01/0001, 06/01/0001,01/01/0001, -07/01/0001, -08/01/0001, -05/01/0001,
           -09/01/0001'.
-        - Usu·rio: Seguindo a mesma lÛgica, caso tenha o '-' SINAL DE MENOS/TRA«O NO COME«O, ele n„o ir· aparecer, e
-          caso tenha sem, ir· aparecer apenas estes. Caso n„o tenha nenhum, ir· aparecer todos. Exemplos > Caso
-          coloque 'Joao' … CASE SENSITIVE, ir· aparecer apenas dados do usu·rio Joao, caso coloque '-Joao' … CASE
-          SENSITIVE, ir· aparecer todos, menos os dados do usu·rio Joao.
-        - Impressora: Igual o de usu·rio, porÈm com o campo Impressora.
-        - EstaÁ„o: Igual o de usu·rio, porÈm com o campo EstaÁ„o.
-        - Duplex e Escala de cinza: VocÍ pode marcar uma caixa, onde caso queira os que tenham, marcar o Com, caso
-          queira os n„o tenham marcar os Sem, exemplos:
-          Com Duplex, Sem Duplex, Com Escala de Cinza, Sem Escala de Cinza todos selecionados ir· pegar todos.
-          Com Duplex, Com Escala de Cinza, Sem Escala de Cinza selecionados, ir· pegar todos, menos aqueles que n„o
-          foram utilizados a forma de impress„o Duplex.
+        - Usu√°rio: Seguindo a mesma l√≥gica, caso tenha o '-' SINAL DE MENOS/TRA√áO NO COME√áO, ele n√£o ir√° aparecer, e
+          caso tenha sem, ir√° aparecer apenas estes. Caso n√£o tenha nenhum, ir√° aparecer todos. Exemplos > Caso
+          coloque 'Joao' √â CASE SENSITIVE, ir√° aparecer apenas dados do usu√°rio Joao, caso coloque '-Joao' √â CASE
+          SENSITIVE, ir√° aparecer todos, menos os dados do usu√°rio Joao.
+        - Impressora: Igual o de usu√°rio, por√©m com o campo Impressora.
+        - Esta√ß√£o: Igual o de usu√°rio, por√©m com o campo Esta√ß√£o.
+        - Duplex e Escala de cinza: Voc√™ pode marcar uma caixa, onde caso queira os que tenham, marcar o Com, caso
+          queira os n√£o tenham marcar os Sem, exemplos:
+          Com Duplex, Sem Duplex, Com Escala de Cinza, Sem Escala de Cinza todos selecionados ir√° pegar todos.
+          Com Duplex, Com Escala de Cinza, Sem Escala de Cinza selecionados, ir√° pegar todos, menos aqueles que n√£o
+          foram utilizados a forma de impress√£o Duplex.
 
-- A tela de **RelatÛrios** o usu·rio conseguir· criar o estilo de PDF e salv·-lo do jeito que estiver, com as seguintes
+- A tela de **Relat√≥rios** o usu√°rio conseguir√° criar o estilo de PDF e salv√°-lo do jeito que estiver, com as seguintes
   ferramentas.
-    - No lado esquerdo ter· uma tela demonstrando os comandos que foram adicionados ao estilo de PDF, que ir· gerar um
+    - No lado esquerdo ter√° uma tela demonstrando os comandos que foram adicionados ao estilo de PDF, que ir√° gerar um
       PDF.
-    - Os seguintes botıes >
-        - Set Font > O usu·rio ir· abrir um Popup pedindo as seguintes informaÁıes: Family, Style e Size, que seria as
-          informaÁıes da fonte dos textos que est„o abaixo deste comando.
-        - Add Cell > O usu·rio ir· abrir um Popup pedindo as seguintes informaÁıes: Width, Height, Text, Border(0=N„o,
-          1=Sim), Quebra de Linha(0=N„o, 1=Sim) e Align, que seria as informaÁıes para a criaÁ„o de uma cÈlula dentro do
+    - Os seguintes bot√µes >
+        - Set Font > O usu√°rio ir√° abrir um Popup pedindo as seguintes informa√ß√µes: Family, Style e Size, que seria as
+          informa√ß√µes da fonte dos textos que est√£o abaixo deste comando.
+        - Add Cell > O usu√°rio ir√° abrir um Popup pedindo as seguintes informa√ß√µes: Width, Height, Text, Border(0=N√£o,
+          1=Sim), Quebra de Linha(0=N√£o, 1=Sim) e Align, que seria as informa√ß√µes para a cria√ß√£o de uma c√©lula dentro do
           PDF.
-        - Add Multicell > O usu·rio ir· abrir um Popup pedindo as seguintes informaÁıes: Width, Height, Text, Border(
-          0=N„o, 1=Sim) e Align, que seria as informaÁıes para a criaÁ„o de uma cÈlula que ocupa diversas linhas caso
+        - Add Multicell > O usu√°rio ir√° abrir um Popup pedindo as seguintes informa√ß√µes: Width, Height, Text, Border(
+          0=N√£o, 1=Sim) e Align, que seria as informa√ß√µes para a cria√ß√£o de uma c√©lula que ocupa diversas linhas caso
           ultrapasse o Width do PDF dentro do PDF.
-        - Add cÛdigo Python > Ir· abrir um Popup onde o usu·rio conseguir· escrever seu cÛdigo python para a criaÁ„o do
-          PDF de forma DIN¬MICA. As seguintes funÁıes podem ser utilizadas pelo usu·rio:
-            - As padrıes:
-                - conteudo um dicion·rio onde a chave È o que ele quer pegar, o usu·rio consegue acessar os dados que
+        - Add c√≥digo Python > Ir√° abrir um Popup onde o usu√°rio conseguir√° escrever seu c√≥digo python para a cria√ß√£o do
+          PDF de forma DIN√ÇMICA. As seguintes fun√ß√µes podem ser utilizadas pelo usu√°rio:
+            - As padr√µes:
+                - conteudo um dicion√°rio onde a chave √© o que ele quer pegar, o usu√°rio consegue acessar os dados que
                   foram obtidos na tela de Dados Salvos, que a chave seria 'lista', exemplo: conteudo['lista'] seria uma
-                  lista de objetos Dados contendo os seguintes par‚metros: id, principal, data, hora, user, paginas,
-                  copias, impressora, arquivo, est, duplex, escala_de_cinza, jeito de escrever um cÛdigo para colocar as
-                  informaÁıes em cells e multicells e tambÈm como acessar o conteudo['filtros'] pode ser encontrado ao
-                  utilizar o bot„o Pegar Estilo Padr„o que se encontra na tela.
-                - math biblioteca para fazer operaÁıes matem·ticas.
-                - datetime biblioteca para manipulaÁ„o de datas.
-                - pdf para manipulaÁ„o do PDF.
-                - set_font para setar fonte dos textos apÛs este comando.
+                  lista de objetos Dados contendo os seguintes par√¢metros: id, principal, data, hora, user, paginas,
+                  copias, impressora, arquivo, est, duplex, escala_de_cinza, jeito de escrever um c√≥digo para colocar as
+                  informa√ß√µes em cells e multicells e tamb√©m como acessar o conteudo['filtros'] pode ser encontrado ao
+                  utilizar o bot√£o Pegar Estilo Padr√£o que se encontra na tela.
+                - math biblioteca para fazer opera√ß√µes matem√°ticas.
+                - datetime biblioteca para manipula√ß√£o de datas.
+                - pdf para manipula√ß√£o do PDF.
+                - set_font para setar fonte dos textos ap√≥s este comando.
                 - cell para adicionar uma cell no pdf.
                 - multi_cell para adicionar multicell no pdf.
-            - As funÁıes customizadas(Pode ser encontrado como utilizar atravÈs do bot„o Pegar Estilo Padr„o):
-                - formatar_datas para pegar todas as datas que est„o presentes nos dados obtidos.
+            - As fun√ß√µes customizadas(Pode ser encontrado como utilizar atrav√©s do bot√£o Pegar Estilo Padr√£o):
+                - formatar_datas para pegar todas as datas que est√£o presentes nos dados obtidos.
                 - truncate_text para adicionar '...' em uma parte do texto caso ele seja maior do que o estipulado.
-                - calcular_periodo para receber trÍs vari·veis dentro de uma tupla, (primeira data, ˙ltima data, dias
+                - calcular_periodo para receber tr√™s vari√°veis dentro de uma tupla, (primeira data, √∫ltima data, dias
                   entre elas).
-                - pegar_totais para pegar duas vari·veis dentro de uma tupla, (totais, total), o totais seria um
-                  dicion·rio onde a chave È o arquivo principal e os valores um dicion·rio onde a chave È o usu·rio e o
-                  valor o total de folhas, o total seria um dicion·rio onde a chave È o usu·rio e o valor o total de
+                - pegar_totais para pegar duas vari√°veis dentro de uma tupla, (totais, total), o totais seria um
+                  dicion√°rio onde a chave √© o arquivo principal e os valores um dicion√°rio onde a chave √© o usu√°rio e o
+                  valor o total de folhas, o total seria um dicion√°rio onde a chave √© o usu√°rio e o valor o total de
                   folhas.
-                - formato_da_data para pegar o formato de data padr„o.
-        - Remover ˙ltima adiÁ„o > Remove a ˙ltima adiÁ„o no estilo de PDF.
-        - Estilos de PDF Salvos > Abre um Popup contendo os nomes dos estilos de PDF salvos, podendo tambÈm pesquisar
-          pelo nome ao escrever e clicar no bot„o Buscar estilo de PDF.
-        - Pegar estilo padr„o > Pega o estilo padr„o de PDF, nele h· v·rios cÛdigos python para poder aprender como
-          manipular as funÁıes utiliz·veis.
-        - Salvar estilo de PDF > Abre um Popup onde È necess·rio informar um nome para salvar o estilo atual, caso
-          esteja com o banco de dados desativado, ele ir· salvar no formato json, caso contr·rio ele ir· salvar no banco
+                - formato_da_data para pegar o formato de data padr√£o.
+        - Remover √∫ltima adi√ß√£o > Remove a √∫ltima adi√ß√£o no estilo de PDF.
+        - Estilos de PDF Salvos > Abre um Popup contendo os nomes dos estilos de PDF salvos, podendo tamb√©m pesquisar
+          pelo nome ao escrever e clicar no bot√£o Buscar estilo de PDF.
+        - Pegar estilo padr√£o > Pega o estilo padr√£o de PDF, nele h√° v√°rios c√≥digos python para poder aprender como
+          manipular as fun√ß√µes utiliz√°veis.
+        - Salvar estilo de PDF > Abre um Popup onde √© necess√°rio informar um nome para salvar o estilo atual, caso
+          esteja com o banco de dados desativado, ele ir√° salvar no formato json, caso contr√°rio ele ir√° salvar no banco
           de dados.
         - Gerar PDF > Gera um PDF baseado no estilo de PDF atual.
 
-- A tela de **ConfiguraÁıes** È a tela onde o usu·rio consegue alterar partes do aplicativo.
-    - Padrıes e tipo do banco de dados, onde caso o tipo esteja desativado, a aplicaÁ„o ir· funcionar atravÈs de
-      salvamentos em JSON, caso contr·rio, ir· funcionar atravÈs de salvamentos no banco de dados.
-    - Na parte superior encontra-se as traduÁıes, que serve para casos de problemas de localizaÁ„o, n„o sendo
-      recomendado alterar caso n„o seja necess·rio, contendo um bot„o para salvar a traduÁ„o e outro para ir para a tela
-      Lista de TraduÁıes.
-    - Em seguida est· o tipo do Banco de Dados, Ativado ou Desativado.
-    - Em seguida o caminho padr„o dos logs que ficar· como padr„o ao entrar na tela de Resultados.
-    - Por fim um bot„o que ir· encaminhar o usu·rio para a tela Alterar Documentos.
+- A tela de **Configura√ß√µes** √© a tela onde o usu√°rio consegue alterar partes do aplicativo.
+    - Padr√µes e tipo do banco de dados, onde caso o tipo esteja desativado, a aplica√ß√£o ir√° funcionar atrav√©s de
+      salvamentos em JSON, caso contr√°rio, ir√° funcionar atrav√©s de salvamentos no banco de dados.
+    - Na parte superior encontra-se as tradu√ß√µes, que serve para casos de problemas de localiza√ß√£o, n√£o sendo
+      recomendado alterar caso n√£o seja necess√°rio, contendo um bot√£o para salvar a tradu√ß√£o e outro para ir para a tela
+      Lista de Tradu√ß√µes.
+    - Em seguida est√° o tipo do Banco de Dados, Ativado ou Desativado.
+    - Em seguida o caminho padr√£o dos logs que ficar√° como padr√£o ao entrar na tela de Resultados.
+    - Por fim um bot√£o que ir√° encaminhar o usu√°rio para a tela Alterar Documentos.
 
-- A tela **Lista de TraduÁıes** ir· listar todas as traduÁıes da aplicaÁ„o.
-    - Onde ir· traduzir do primeiro para o segundo, podendo remover, e para salvar È necess·rio apertar no bot„o
-      Aplicar, caso contr·rio, n„o ser· efetuado a aÁ„o de remoÁ„o.
-    - **Cuidado: a aÁ„o de remoÁ„o n„o È possÌvel ser revertida!**
+- A tela **Lista de Tradu√ß√µes** ir√° listar todas as tradu√ß√µes da aplica√ß√£o.
+    - Onde ir√° traduzir do primeiro para o segundo, podendo remover, e para salvar √© necess√°rio apertar no bot√£o
+      Aplicar, caso contr√°rio, n√£o ser√° efetuado a a√ß√£o de remo√ß√£o.
+    - **Cuidado: a a√ß√£o de remo√ß√£o n√£o √© poss√≠vel ser revertida!**
 
-- A tela de **Alterar Documentos** È onde ir· listar todos os htmls e csvs que foram salvos.
-    - Pode-se apertar no bot„o Remover Documento
+- A tela de **Alterar Documentos** √© onde ir√° listar todos os htmls e csvs que foram salvos.
+    - Pode-se apertar no bot√£o Remover Documento
     - Escrever o nome e apertar em Remover.
-        - Os botıes ir„o abrir um Popup demonstrando todos os dados que ser„o removidos do Banco de Dados.
-    - **Aviso: Esta aÁ„o n„o È plausÌvel em caso de salvamentos em JSON. Cuidado: a aÁ„o de remoÁ„o n„o È possÌvel ser
+        - Os bot√µes ir√£o abrir um Popup demonstrando todos os dados que ser√£o removidos do Banco de Dados.
+    - **Aviso: Esta a√ß√£o n√£o √© plaus√≠vel em caso de salvamentos em JSON. Cuidado: a a√ß√£o de remo√ß√£o n√£o √© poss√≠vel ser
       revertida!**
