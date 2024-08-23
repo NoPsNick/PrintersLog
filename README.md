@@ -157,11 +157,9 @@ com [serafim999junior@hotmail.com](mailto:serafim999junior@hotmail.com?subject=C
 
 - A tela de **Configurações** é a tela onde o usuário altera partes do aplicativo.
     - Padrões e tipo do banco de dados, onde caso o tipo esteja desativado, a aplicação funciona através de salvamentos em JSON; caso contrário, funciona através de salvamentos no banco de dados.
-    - Na parte superior encontram-se as traduções, que servem para casos de problemas de localização, não sendo recomendado alterar caso não seja necessário, contendo um botão para salvar a tradução e outro para ir para a tela Lista de Traduções.
-    - Em seguida está o tipo
-
- do Banco de Dados, Ativado ou Desativado.
-    - Em seguida o caminho padrão dos logs que fica como padrão ao entrar na tela de Resultados.
+    - Primeiramente, encontram-se as traduções, que servem para casos de problemas de localização, não sendo recomendado alterar caso não seja necessário, contendo um botão para salvar a tradução e outro para ir para a tela Lista de Traduções.
+    - Em segundo, está o tipo do Banco de Dados, Ativado ou Desativado.
+    - Em terceiro, o caminho padrão dos logs que fica como padrão ao entrar na tela de Resultados.
     - Por fim, um botão que encaminha o usuário para a tela Alterar Documentos.
 
 - A tela **Lista de Traduções** lista todas as traduções da aplicação.
