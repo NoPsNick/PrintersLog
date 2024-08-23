@@ -90,8 +90,8 @@ Este projeto está licenciado sob a [MIT License](LICENSE).
 
 ## Contato
 
-Para mais informações, entre em contato
-com [serafim999junior@hotmail.com](mailto:serafim999junior@hotmail.com?subject=Contato%20do%20GitHub)
+Para mais informações, entre em contato(Irá abrir o seu aplicativo de email)
+com [serafim999junior@hotmail.com](mailto:serafim999junior@hotmail.com?subject=Contato%20do%20GitHub).
 
 # Texto mais explicativo
 
@@ -111,7 +111,7 @@ com [serafim999junior@hotmail.com](mailto:serafim999junior@hotmail.com?subject=C
         - Salvar no Banco de Dados que, caso esteja ativo, salva os resultados no banco de dados.
 
 - A tela **Dados Salvos** o usuário consegue fazer a pesquisa de todos os dados salvos, contendo 3 botões.
-    - Pesquisar que, caso o banco de dados esteja desativo nas configurações, faz a busca no formato JSON; caso esteja ativo, faz a busca no banco de dados.
+    - Pesquisar que, caso o banco de dados esteja desativado nas configurações, faz a busca no formato JSON; caso esteja ativo, faz a busca no banco de dados.
     - Filtros que o usuário vai para a tela Filtros.
     - Criar Relatório em PDF que o usuário vai para a tela de Relatórios, caso tenha algum dado obtido pelo botão de Pesquisar.
 
